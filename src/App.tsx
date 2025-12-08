@@ -807,6 +807,17 @@ export default function App() {
       }, 100);
     }
   }, [step]);
+
+  // 사이드바가 열릴 때 상단으로 스크롤 (모바일에서 상단이 잘리지 않도록)
+  useEffect(() => {
+    if (sidebarOpen && step === 4) {
+      setTimeout(() => {
+        if (sidebarRef.current) {
+          sidebarRef.current.scrollTo(0, 0);
+        }
+      }, 100);
+    }
+  }, [sidebarOpen, step]);
   const [profileVars, setProfileVars] = useState<typeof DEFAULT_VARS>(() => {
     const saved = loadPreferences();
     return saved ? saved.vars : { ...DEFAULT_VARS };
@@ -2482,8 +2493,8 @@ const isOpen = !!expanded[f.code];
             sidebarOpen ? 'translate-x-0' : 'translate-x-full'
           } ${sidebarOpen ? 'w-full sm:w-96 lg:w-80 xl:w-96' : 'w-0 lg:w-0'}`}
         >
-          <div className="p-3 sm:p-4 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4 sm:mb-5">
+          <div className="p-3 sm:p-4 pt-4 sm:pt-4 lg:pt-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4 sm:mb-5 flex-shrink-0">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 중요도 변경
               </h2>
