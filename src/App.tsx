@@ -811,13 +811,50 @@ export default function App() {
   // 사이드바가 열릴 때 상단으로 스크롤 (모바일에서 상단이 잘리지 않도록)
   useEffect(() => {
     if (sidebarOpen && step === 4) {
-      setTimeout(() => {
+      // 여러 번 시도하여 확실히 상단으로 스크롤
+      const scrollToTop = () => {
         if (sidebarRef.current) {
-          sidebarRef.current.scrollTo(0, 0);
+          sidebarRef.current.scrollTop = 0;
         }
-      }, 100);
+      };
+      // 즉시 실행
+      requestAnimationFrame(() => {
+        scrollToTop();
+        // 여러 번 시도
+        setTimeout(scrollToTop, 10);
+        setTimeout(scrollToTop, 50);
+        setTimeout(scrollToTop, 100);
+        setTimeout(scrollToTop, 200);
+      });
     }
   }, [sidebarOpen, step]);
+
+  // 화면 크기에 따라 사이드탭 자동 열기/닫기
+  useEffect(() => {
+    if (step === 4) {
+      const handleResize = () => {
+        const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
+        if (isLargeScreen) {
+          // 큰 화면에서는 사이드탭 열기
+          setSidebarOpen(true);
+        } else {
+          // 작은 화면에서는 사이드탭 닫기
+          setSidebarOpen(false);
+        }
+      };
+
+      // 초기 실행
+      handleResize();
+
+      // 리사이즈 이벤트 리스너 추가
+      window.addEventListener('resize', handleResize);
+
+      // cleanup
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [step]);
   const [profileVars, setProfileVars] = useState<typeof DEFAULT_VARS>(() => {
     const saved = loadPreferences();
     return saved ? saved.vars : { ...DEFAULT_VARS };
@@ -2212,7 +2249,10 @@ export default function App() {
 const top3 = ranked.slice(0, 3);
 return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
-      <BackBar />
+      {/* 큰 화면에서는 상단에 BackBar, 작은 화면에서는 하단에 */}
+      <div className="hidden lg:block">
+        <BackBar />
+      </div>
       {/* 모바일 오버레이 */}
       {sidebarOpen && (
         <div
@@ -2220,9 +2260,9 @@ return (
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <div className="flex-1 flex relative">
-        {/* 메인 콘텐츠 영역 */}
-        <div className={`flex-1 transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:pr-0' : ''}`}>
+      <div className="flex-1 flex flex-col lg:flex-row relative min-h-0">
+        {/* 메인 콘텐츠 영역 - 작은 화면에서 위에 */}
+        <div className={`flex-1 transition-all duration-300 min-w-0 order-1 lg:order-1 ${sidebarOpen ? 'lg:pr-0' : ''}`}>
           <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
             <div className="mb-7 sm:mb-10 flex items-center justify-between">
               <div>
@@ -2236,7 +2276,22 @@ return (
               </div>
               {!sidebarOpen && (
                 <button
-                  onClick={() => setSidebarOpen(true)}
+                  onClick={() => {
+                    setSidebarOpen(true);
+                    // 사이드바가 열릴 때 상단으로 스크롤
+                    requestAnimationFrame(() => {
+                      setTimeout(() => {
+                        if (sidebarRef.current) {
+                          sidebarRef.current.scrollTop = 0;
+                        }
+                      }, 50);
+                      setTimeout(() => {
+                        if (sidebarRef.current) {
+                          sidebarRef.current.scrollTop = 0;
+                        }
+                      }, 150);
+                    });
+                  }}
                   className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm sm:text-base font-semibold hover:shadow-lg transition-all hover:scale-105"
                   aria-label="중요도 변경"
                 >
@@ -2484,16 +2539,21 @@ const isOpen = !!expanded[f.code];
             </div>
             <Disclaimer />
           </div>
-    </div>
+        </div>
 
-        {/* 사이드탭 */}
+        {/* 사이드탭 - 작은 화면에서는 fixed 모달, 큰 화면에서는 오른쪽 */}
         <div
           ref={sidebarRef}
-          className={`fixed lg:sticky top-0 right-0 h-screen lg:h-screen lg:max-h-screen bg-white border-l border-gray-200 shadow-2xl z-40 transition-all duration-300 overflow-y-auto flex-shrink-0 ${
+          className={`${
+            sidebarOpen 
+              ? 'fixed lg:fixed' 
+              : 'hidden lg:hidden'
+          } lg:sticky top-0 right-0 h-screen lg:h-screen lg:max-h-screen bg-white border-l border-gray-200 shadow-2xl z-40 transition-all duration-300 overflow-y-auto flex-shrink-0 ${
             sidebarOpen ? 'translate-x-0' : 'translate-x-full'
           } ${sidebarOpen ? 'w-full sm:w-96 lg:w-80 xl:w-96' : 'w-0 lg:w-0'}`}
+          style={sidebarOpen && step === 4 ? { scrollBehavior: 'auto' } : undefined}
         >
-          <div className="p-3 sm:p-4 pt-4 sm:pt-4 lg:pt-4 h-full flex flex-col">
+          <div className="p-3 sm:p-4 pt-8 sm:pt-8 lg:pt-4 h-full flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-4 sm:mb-5 flex-shrink-0">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 중요도 변경
@@ -2571,6 +2631,10 @@ const isOpen = !!expanded[f.code];
             </div>
           </div>
         </div>
+      </div>
+      {/* 작은 화면에서는 하단에 BackBar */}
+      <div className="lg:hidden order-3">
+        <BackBar />
       </div>
       <Footer />
     </div>
