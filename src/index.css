@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+input[type="range"].slider-thumb::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:9999px; background:#3b82f6; }
+input[type="range"].slider-thumb::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:9999px; background:#3b82f6; }
