@@ -2110,7 +2110,7 @@ export default function App() {
               )}
               {(() => {
                 const summary = s.key === "preset" ? getPresetSummary() : getSituationSummary(s.key);
-                if (summary.high.length === 0 && summary.low.length === 0) return null;
+                if (summary.high.length === 0) return null;
                 return (
                   <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                     {summary.high.length > 0 && (
@@ -2121,18 +2121,6 @@ export default function App() {
                             className="inline-flex items-center gap-0.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-blue-100 text-blue-700 font-medium"
                           >
                             {item} ↑
-                          </span>
-                        ))}
-                      </>
-                    )}
-                    {summary.low.length > 0 && (
-                      <>
-                        {summary.low.map((item, idx) => (
-                          <span
-                            key={`low-${idx}`}
-                            className="inline-flex items-center gap-0.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-gray-100 text-gray-600 font-medium"
-                          >
-                            {item} ↓
                           </span>
                         ))}
                       </>
