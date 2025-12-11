@@ -2732,10 +2732,7 @@ export default function App() {
 const top3 = ranked.slice(0, 3);
 return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* 큰 화면에서는 상단에 BackBar, 작은 화면에서는 하단에 */}
-      <div className="hidden lg:block">
-        <BackBar />
-      </div>
+      <BackBar />
       {/* 모바일 오버레이 */}
       {sidebarOpen && (
         <div
@@ -2809,24 +2806,72 @@ const meta = airlineMeta(f.airline);
 const score100 = Math.round(f.score * 10);
 const reason = reasonTextBiz(f, vars, f.detail);
 const rows = buildDetailRows(f, f.detail, dietary, baggageKg);
+
+// 태그 배열 구성: FSC/LCC + 얼라이언스 + CO2 증감 + 장점 (중복 제거)
+const excludedTags = [
+  meta.fscOrLcc,
+  meta.alliance,
+  "#FSC",
+  "#LCC",
+  "#스카이팀",
+  "#스타얼라이언스",
+  "#원월드",
+  "#미분류"
+];
+
+const advantageTags = meta.tags.filter(tag => !excludedTags.includes(tag));
+
 const tags = [
-meta.fscOrLcc,
-meta.alliance,
-co2Tag(f),
-...meta.tags,
+  meta.fscOrLcc,
+  meta.alliance,
+  co2Tag(f),
+  ...advantageTags,
 ].filter(Boolean);
 const isOpen = !!expanded[f.code];
+
+// 순위별 색상 테마 함수
+const getRankColor = (idx: number) => {
+  if (idx === 0) {
+    // 1위: 금색 테마
+    return {
+      border: 'border-amber-400',
+      borderHover: 'hover:border-amber-500',
+      badgeBg: 'bg-gradient-to-r from-amber-500 to-yellow-500',
+      scoreBg: 'bg-gradient-to-r from-amber-500 to-yellow-500',
+    };
+  } else if (idx === 1) {
+    // 2위: 은색 테마
+    return {
+      border: 'border-gray-300',
+      borderHover: 'hover:border-gray-400',
+      badgeBg: 'bg-gradient-to-r from-gray-400 to-slate-400',
+      scoreBg: 'bg-gradient-to-r from-gray-400 to-slate-400',
+    };
+  } else {
+    // 3위: 동색 테마
+    return {
+      border: 'border-orange-400',
+      borderHover: 'hover:border-orange-500',
+      badgeBg: 'bg-gradient-to-r from-orange-600 to-amber-600',
+      scoreBg: 'bg-gradient-to-r from-orange-600 to-amber-600',
+    };
+  }
+};
+
+const rankColors = getRankColor(idx);
+
      return (
           <div
             key={f.code}
-            className="group relative bg-white rounded-2xl border-2 border-gray-200 p-7 hover:border-blue-300 hover:shadow-2xl transition-all duration-300"
+            className={`group relative bg-white rounded-2xl border-2 ${rankColors.border} p-7 ${rankColors.borderHover} hover:shadow-2xl transition-all duration-300`}
           >
             {/* 순위 배지 */}
-            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-2xl shadow-lg">
-              {rankEmoji(idx)}
+            <div className={`absolute -top-6 -left-4 px-4 py-3 rounded-full ${rankColors.badgeBg} flex items-center gap-3 shadow-lg border-2 border-white z-10`}>
+              <span className="text-3xl">{rankEmoji(idx)}</span>
+              <span className="text-xl font-bold text-white">{idx + 1}위</span>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mt-8">
               <div className="flex-1">
                 <div className="text-2xl font-bold text-gray-900 mb-2">
                   {f.airline}{" "}
@@ -2847,7 +2892,7 @@ const isOpen = !!expanded[f.code];
               </div>
 
               {/* 점수 표시 */}
-              <div className="shrink-0 text-center bg-blue-600 rounded-2xl p-6 text-white shadow-lg">
+              <div className={`shrink-0 text-center ${rankColors.scoreBg} rounded-2xl p-6 text-white shadow-lg`}>
                 <div className="text-5xl font-black leading-none mb-1">
                   {score100}
                 </div>
