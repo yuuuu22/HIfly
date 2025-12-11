@@ -177,7 +177,7 @@ const CATEGORIES: {
       {
         key: "service_meal",
         label: "기내식 서비스 품질",
-        helper: "만족도, 유아식/처방식/종교식/기타 등 제공 다양성",
+        helper: "유아식/처방식/종교식/기타 등 제공 다양성, 제공 기내식 종류, 양&맛 후기",
         special: "meal",
       },
       {
@@ -308,117 +308,385 @@ const getPresetSummary = (): { high: string[]; low: string[] } => {
 const FLIGHTS = [
   {
     airline: "Korean Air",
-    code: "KE081", // 실제 운항 번호
+    code: "KE081", // 실제 운항 번호 (2025년 12월 18일 기준)
     depart: "13:40 ICN",
     arrive: "16:10 JFK", // JFK 공항 명시
     nonstop: true,
-    ontime: 0.86, // 실제 정시성 데이터 기반
-    co2: 0.62,
-    seatQuality: 0.92,
+    ontime: 0.799, // 사진 데이터: 정시성 7.99 / 10
+    co2: 0.742, // 사진 데이터: 환경성 7.42 / 10 (낮을수록 좋음이므로 역수)
+    seatQuality: 0.933, // 사진 데이터: 좌석 편의성 9.326 / 10
     baggage: 30, // Korean Air 일반석 수하물 30kg
-    comfort: 0.9,
+    comfort: 0.669, // 사진 데이터: 승무원 서비스 6.687 / 10
     duration: 14.0, // 실제 직항 소요 시간
     price: 1.25,
   },
   {
     airline: "Korean Air",
-    code: "KE085", // 실제 운항 번호 (추가 편)
+    code: "KE085", // 실제 운항 번호 (2025년 12월 18일 기준, 추가 편)
     depart: "18:00 ICN",
     arrive: "20:30 JFK",
     nonstop: true,
-    ontime: 0.85,
-    co2: 0.62,
-    seatQuality: 0.92,
+    ontime: 0.799,
+    co2: 0.742,
+    seatQuality: 0.933,
     baggage: 30,
-    comfort: 0.9,
+    comfort: 0.669,
     duration: 14.0,
     price: 1.28,
   },
   {
     airline: "Asiana Airlines",
-    code: "OZ221", // 실제 운항 번호
+    code: "OZ221", // 실제 운항 번호 (2025년 12월 18일 기준)
     depart: "11:30 ICN",
     arrive: "13:10 JFK",
     nonstop: true,
-    ontime: 0.84,
-    co2: 0.64,
-    seatQuality: 0.89,
+    ontime: 0.743, // 사진 데이터: 정시성 7.43 / 10
+    co2: 0.613, // 사진 데이터: 환경성 6.13 / 10
+    seatQuality: 0.978, // 사진 데이터: 좌석 편의성 9.784 / 10
     baggage: 23, // Asiana 일반석 수하물 23kg
-    comfort: 0.86,
+    comfort: 0.540, // 사진 데이터: 승무원 서비스 5.398 / 10
     duration: 13.8,
     price: 1.18,
   },
   {
     airline: "Asiana Airlines",
-    code: "OZ223", // 실제 운항 번호 (추가 편)
+    code: "OZ223", // 실제 운항 번호 (2025년 12월 18일 기준, 추가 편)
     depart: "15:20 ICN",
     arrive: "17:00 JFK",
     nonstop: true,
-    ontime: 0.83,
-    co2: 0.64,
-    seatQuality: 0.89,
+    ontime: 0.743,
+    co2: 0.613,
+    seatQuality: 0.978,
     baggage: 23,
-    comfort: 0.86,
+    comfort: 0.540,
     duration: 13.8,
     price: 1.20,
   },
   {
-    airline: "Delta",
-    code: "DL158", // 실제 운항 번호
-    depart: "18:20 ICN",
-    arrive: "18:50 JFK", // 경유편 (일반적으로 도쿄 또는 시애틀 경유)
-    nonstop: false,
-    ontime: 0.82,
-    co2: 0.71,
-    seatQuality: 0.8,
+    airline: "Delta Air Lines",
+    code: "DL196", // 실제 운항 번호 (2025년 12월 18일 기준, 직항)
+    depart: "11:30 ICN",
+    arrive: "13:20 JFK",
+    nonstop: true,
+    ontime: 0.793, // 사진 데이터: 정시성 7.93 / 10
+    co2: 0.475, // 사진 데이터: 환경성 4.75 / 10
+    seatQuality: 0.449, // 사진 데이터: 좌석 편의성 4.486 / 10
     baggage: 23, // Delta 일반석 수하물 23kg
-    comfort: 0.78,
-    duration: 17.2, // 경유 포함 실제 소요 시간
+    comfort: 0.300, // 사진 데이터: 승무원 서비스 3.0 / 10
+    duration: 14.0,
     price: 0.95,
   },
   {
-    airline: "United",
-    code: "UA792", // 실제 운항 번호
-    depart: "09:40 ICN",
-    arrive: "11:20 EWR", // Newark 공항 (뉴욕 지역)
-    nonstop: false,
-    ontime: 0.79,
-    co2: 0.69,
-    seatQuality: 0.79,
+    airline: "United Airlines",
+    code: "UA82", // 실제 운항 번호 (2025년 12월 18일 기준, 직항)
+    depart: "10:00 ICN",
+    arrive: "11:50 EWR", // Newark 공항 (뉴욕 지역)
+    nonstop: true,
+    ontime: 0.731, // 사진 데이터: 정시성 7.31 / 10
+    co2: 0.523, // 사진 데이터: 환경성 5.23 / 10
+    seatQuality: 0.652, // 사진 데이터: 좌석 편의성 6.519 / 10
     baggage: 23, // United 일반석 수하물 23kg
-    comfort: 0.77,
-    duration: 16.5, // 경유 포함 실제 소요 시간
+    comfort: 0.300, // 사진 데이터: 승무원 서비스 3.0 / 10
+    duration: 14.0,
     price: 0.92,
   },
   {
-    airline: "Qatar Airways",
-    code: "QR859", // 실제 운항 번호
-    depart: "01:40 ICN",
-    arrive: "15:30 JFK", // 도하 경유
-    nonstop: false,
-    ontime: 0.92,
-    co2: 0.73,
-    seatQuality: 0.96,
-    baggage: 30, // Qatar Airways 일반석 수하물 30kg
-    comfort: 0.94,
-    duration: 23.0, // 경유 포함 실제 소요 시간
-    price: 1.28,
+    airline: "American Airlines",
+    code: "AA181", // 실제 운항 번호 (2025년 12월 18일 기준, 직항)
+    depart: "12:00 ICN",
+    arrive: "13:50 JFK",
+    nonstop: true,
+    ontime: 0.734, // 사진 데이터: 정시성 7.34 / 10
+    co2: 0.565, // 사진 데이터: 환경성 5.65 / 10
+    seatQuality: 0.682, // 사진 데이터: 좌석 편의성 6.821 / 10
+    baggage: 23, // American Airlines 일반석 수하물 23kg
+    comfort: 0.300, // 사진 데이터: 승무원 서비스 3.0 / 10
+    duration: 14.0,
+    price: 0.98,
   },
   {
-    airline: "Japan Airlines",
-    code: "JL004", // 실제 운항 번호 (도쿄 경유)
-    depart: "08:00 ICN",
-    arrive: "14:30 JFK",
-    nonstop: false,
-    ontime: 0.88,
-    co2: 0.68,
-    seatQuality: 0.87,
-    baggage: 23,
-    comfort: 0.85,
-    duration: 18.5,
-    price: 1.15,
+    airline: "Air Premia",
+    code: "YP131", // 실제 운항 번호 (2025년 12월 18일 기준, 직항)
+    depart: "14:30 ICN",
+    arrive: "16:20 JFK",
+    nonstop: true,
+    ontime: 0.844, // 사진 데이터: 정시성 8.44 / 10
+    co2: 0.600, // 사진 데이터: 환경성 6.0 / 10
+    seatQuality: 0.970, // 사진 데이터: 좌석 편의성 9.696 / 10
+    baggage: 23, // Air Premia 일반석 수하물 23kg
+    comfort: 0.300, // 사진 데이터: 승무원 서비스 3.0 / 10
+    duration: 14.0,
+    price: 0.88,
+  },
+  {
+    airline: "Hawaiian Airlines",
+    code: "HA460", // 실제 운항 번호 (2025년 12월 18일 기준, 직항)
+    depart: "09:00 ICN",
+    arrive: "10:50 JFK",
+    nonstop: true,
+    ontime: 0.778, // 사진 데이터: 정시성 7.78 / 10
+    co2: 0.496, // 사진 데이터: 환경성 4.96 / 10
+    seatQuality: 0.723, // 사진 데이터: 좌석 편의성 7.225 / 10
+    baggage: 23, // Hawaiian Airlines 일반석 수하물 23kg
+    comfort: 0.300, // 사진 데이터: 승무원 서비스 3.0 / 10
+    duration: 14.0,
+    price: 0.90,
   },
 ];
+
+// -----------------------------
+// 예매한 항공권 기록 더미 데이터
+// -----------------------------
+interface BookingRecord {
+  id: string;
+  flight: typeof FLIGHTS[0];
+  bookingDate: string; // 예매일
+  flightDate: string; // 탑승일
+  status: 'completed' | 'upcoming'; // 탑승 완료 / 예정
+  hasReview: boolean; // 리뷰 작성 여부
+}
+
+const BOOKING_RECORDS: BookingRecord[] = [
+  {
+    id: 'booking-1',
+    flight: FLIGHTS[0], // Korean Air KE081
+    bookingDate: '2025-11-15',
+    flightDate: '2025-12-18',
+    status: 'completed',
+    hasReview: false,
+  },
+  {
+    id: 'booking-2',
+    flight: FLIGHTS[2], // Asiana Airlines OZ221
+    bookingDate: '2025-11-20',
+    flightDate: '2025-12-18',
+    status: 'completed',
+    hasReview: false,
+  },
+  {
+    id: 'booking-3',
+    flight: FLIGHTS[4], // United Airlines UA82
+    bookingDate: '2025-12-01',
+    flightDate: '2025-12-18',
+    status: 'completed',
+    hasReview: true,
+  },
+  {
+    id: 'booking-4',
+    flight: FLIGHTS[6], // Air Premia YP131
+    bookingDate: '2025-12-10',
+    flightDate: '2025-12-25',
+    status: 'upcoming',
+    hasReview: false,
+  },
+];
+
+// -----------------------------
+// 라운지 목록 더미 데이터
+// -----------------------------
+interface Lounge {
+  id: string;
+  name: string;
+  airport: string;
+  terminal: string;
+  airline?: string; // 특정 항공사 전용 라운지
+}
+
+const LOUNGES: Lounge[] = [
+  // 인천공항
+  { id: 'icn-t1-korean', name: '대한항공 라운지', airport: '인천공항', terminal: '터미널1', airline: 'Korean Air' },
+  { id: 'icn-t1-asiana', name: '아시아나항공 라운지', airport: '인천공항', terminal: '터미널1', airline: 'Asiana Airlines' },
+  { id: 'icn-t1-skyteam', name: '스카이팀 라운지', airport: '인천공항', terminal: '터미널1' },
+  { id: 'icn-t1-staralliance', name: '스타얼라이언스 라운지', airport: '인천공항', terminal: '터미널1' },
+  { id: 'icn-t2-premium', name: '프리미엄 라운지', airport: '인천공항', terminal: '터미널2' },
+  { id: 'icn-t2-korean', name: '대한항공 라운지', airport: '인천공항', terminal: '터미널2', airline: 'Korean Air' },
+  
+  // JFK 공항
+  { id: 'jfk-delta', name: '델타 스카이 클럽', airport: 'JFK', terminal: '터미널4', airline: 'Delta Air Lines' },
+  { id: 'jfk-american', name: '아메리칸 항공 어드미럴스 클럽', airport: 'JFK', terminal: '터미널8', airline: 'American Airlines' },
+  { id: 'jfk-lufthansa', name: '루프트한자 라운지', airport: 'JFK', terminal: '터미널1' },
+  { id: 'jfk-airfrance', name: '에어프랑스 라운지', airport: 'JFK', terminal: '터미널1' },
+  
+  // EWR 공항
+  { id: 'ewr-united', name: '유나이티드 클럽', airport: 'EWR', terminal: '터미널C', airline: 'United Airlines' },
+  { id: 'ewr-lufthansa', name: '루프트한자 라운지', airport: 'EWR', terminal: '터미널B' },
+];
+
+// 좌석 등급 옵션
+const SEAT_CLASSES = [
+  { value: 'economy', label: '일반석' },
+  { value: 'premium_economy', label: '프리미엄 일반석' },
+  { value: 'business', label: '비즈니스석' },
+  { value: 'first', label: '퍼스트클래스' },
+];
+
+// -----------------------------
+// 항공사별 × 요소별 점수 데이터
+// 사진 데이터 기반 (7개 항공사 × 9개 요소 = 63개)
+// -----------------------------
+const AIRLINE_ELEMENT_SCORES: Record<string, Record<string, number>> = {
+  "Korean Air": {
+    basic_safety: 8.27,
+    basic_punctuality: 7.99,
+    service_cabin: 6.687,
+    service_meal: 8.56759,
+    service_baggage: 10,
+    service_lounge: 10,
+    service_wifi: 7,
+    service_seat: 9.326,
+    env_env: 7.42,
+  },
+  "Asiana Airlines": {
+    basic_safety: 8.06,
+    basic_punctuality: 7.43,
+    service_cabin: 5.398,
+    service_meal: 9.164,
+    service_baggage: 10,
+    service_lounge: 2.92,
+    service_wifi: 7,
+    service_seat: 9.784,
+    env_env: 6.13,
+  },
+  "Air Premia": {
+    basic_safety: 4.5,
+    basic_punctuality: 8.44,
+    service_cabin: 3.0,
+    service_meal: 6.98347,
+    service_baggage: 9,
+    service_lounge: 7.17,
+    service_wifi: 10,
+    service_seat: 9.696,
+    env_env: 6.0,
+  },
+  "American Airlines": {
+    basic_safety: 10,
+    basic_punctuality: 7.34,
+    service_cabin: 3.0,
+    service_meal: 8.61535,
+    service_baggage: 9,
+    service_lounge: 0.23,
+    service_wifi: 9,
+    service_seat: 6.821,
+    env_env: 5.65,
+  },
+  "United Airlines": {
+    basic_safety: 9.44,
+    basic_punctuality: 7.31,
+    service_cabin: 3.0,
+    service_meal: 6.673,
+    service_baggage: 9,
+    service_lounge: 2.92,
+    service_wifi: 10,
+    service_seat: 6.519,
+    env_env: 5.23,
+  },
+  "Hawaiian Airlines": {
+    basic_safety: 7.04,
+    basic_punctuality: 7.78,
+    service_cabin: 3.0,
+    service_meal: 6.703,
+    service_baggage: 10,
+    service_lounge: 7.59,
+    service_wifi: 10,
+    service_seat: 7.225,
+    env_env: 4.96,
+  },
+  "Delta Air Lines": {
+    basic_safety: 9.87,
+    basic_punctuality: 7.93,
+    service_cabin: 3.0,
+    service_meal: 9.18988,
+    service_baggage: 10,
+    service_lounge: 8.59,
+    service_wifi: 10,
+    service_seat: 4.486,
+    env_env: 4.75,
+  },
+};
+
+// -----------------------------
+// 항공사별 × 요소별 설명 데이터
+// 사진 데이터 기반 (7개 항공사 × 9개 요소 = 63개)
+// -----------------------------
+const AIRLINE_ELEMENT_DESCRIPTIONS: Record<string, Record<string, string>> = {
+  "Korean Air": {
+    basic_safety: "안전성 점수 8.27로 매우 우수한 안전 기록을 보유하고 있습니다. 자체 보수센터와 엄격한 안전 관리 시스템으로 신뢰도가 높습니다.",
+    basic_punctuality: "정시성 점수 7.99로 시간 준수율이 우수합니다. 장거리 노선에서도 안정적인 운항 스케줄을 제공합니다.",
+    service_cabin: "승무원 서비스 점수 6.687로 친절하고 전문적인 서비스를 제공합니다. 한국어 서비스 지원으로 편리합니다.",
+    service_meal: "기내식 서비스 점수 8.57로 한식과 양식이 조화로운 고품질 기내식을 제공합니다. 다양한 식단 옵션을 선택할 수 있습니다.",
+    service_baggage: "무료 수하물 점수 10으로 일반석 기준 30kg까지 허용되어 장거리 여행에 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 10으로 프리미엄 라운지 시설이 우수합니다. 인천공항에서 편안한 대기 시간을 보낼 수 있습니다.",
+    service_wifi: "기내 인터넷 점수 7로 Wi-Fi 서비스를 제공하지만 일부 구간에서는 제한적일 수 있습니다.",
+    service_seat: "좌석 편의성 점수 9.33으로 넓은 좌석 간격과 편안한 좌석 설계로 장거리 비행의 피로도를 최소화합니다.",
+    env_env: "환경성 점수 7.42로 최신 항공기 도입과 연료 효율 개선으로 환경 친화적인 운항을 추구합니다.",
+  },
+  "Asiana Airlines": {
+    basic_safety: "안전성 점수 8.06로 우수한 안전 기록을 유지하고 있습니다. 체계적인 안전 관리로 신뢰할 수 있는 항공사입니다.",
+    basic_punctuality: "정시성 점수 7.43으로 안정적인 운항 스케줄을 제공합니다. 대부분의 항공편이 정시에 출발합니다.",
+    service_cabin: "승무원 서비스 점수 5.40으로 기본적인 서비스는 제공하지만 일부 개선의 여지가 있습니다.",
+    service_meal: "기내식 서비스 점수 9.16으로 매우 우수한 기내식 품질을 자랑합니다. 다양한 한식 메뉴가 특히 인기가 높습니다.",
+    service_baggage: "무료 수하물 점수 10으로 일반석 기준 23kg까지 허용되어 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 2.92로 라운지 시설이 제한적입니다. 일부 등급에서만 이용 가능합니다.",
+    service_wifi: "기내 인터넷 점수 7로 Wi-Fi 서비스를 제공하지만 일부 구간에서는 연결이 불안정할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 9.78로 매우 넓은 좌석 간격과 편안한 좌석으로 장거리 비행에 최적화되어 있습니다.",
+    env_env: "환경성 점수 6.13으로 평균적인 환경 성과를 보이고 있으며, 지속적인 개선 노력을 하고 있습니다.",
+  },
+  "Air Premia": {
+    basic_safety: "안전성 점수 4.5로 상대적으로 낮은 점수입니다. 신규 항공사로서 안전 기록이 축적되는 단계입니다.",
+    basic_punctuality: "정시성 점수 8.44로 매우 우수한 시간 준수율을 보입니다. 예정된 시간에 정확히 출발합니다.",
+    service_cabin: "승무원 서비스 점수 3.0으로 기본적인 서비스만 제공됩니다. 프리미엄 서비스는 제한적입니다.",
+    service_meal: "기내식 서비스 점수 6.98로 기본적인 기내식을 제공하지만 선택의 폭이 제한적일 수 있습니다.",
+    service_baggage: "무료 수하물 점수 9로 일반석 기준 23kg까지 허용되어 대부분의 여행에 충분합니다.",
+    service_lounge: "라운지 이용 점수 7.17로 기본적인 라운지 시설을 제공하지만 프리미엄 라운지는 제한적입니다.",
+    service_wifi: "기내 인터넷 점수 10으로 무료 Wi-Fi 서비스를 제공하여 장거리 비행 중에도 인터넷을 자유롭게 이용할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 9.70으로 매우 넓은 좌석 간격과 편안한 좌석 설계로 장거리 비행에 적합합니다.",
+    env_env: "환경성 점수 6.0으로 평균적인 수준이며, 최신 항공기 도입으로 환경 성과를 개선하고 있습니다.",
+  },
+  "American Airlines": {
+    basic_safety: "안전성 점수 10으로 최고 수준의 안전 기록을 보유하고 있습니다. 세계적으로 인정받는 안전 관리 시스템을 운영합니다.",
+    basic_punctuality: "정시성 점수 7.34로 안정적인 운항 스케줄을 제공하지만 일부 지연이 발생할 수 있습니다.",
+    service_cabin: "승무원 서비스 점수 3.0으로 기본적인 서비스만 제공됩니다. 프리미엄 서비스는 추가 비용이 발생할 수 있습니다.",
+    service_meal: "기내식 서비스 점수 8.62로 양질의 기내식을 제공하며 다양한 메뉴 옵션을 선택할 수 있습니다.",
+    service_baggage: "무료 수하물 점수 9로 일반석 기준 23kg까지 허용되어 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 0.23으로 라운지 이용이 매우 제한적입니다. 대부분의 등급에서 이용 불가능합니다.",
+    service_wifi: "기내 인터넷 점수 9로 우수한 Wi-Fi 서비스를 제공하여 비행 중에도 안정적인 인터넷 연결을 이용할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 6.82로 평균적인 좌석 편의성을 제공하지만 장거리 비행에서는 다소 좁을 수 있습니다.",
+    env_env: "환경성 점수 5.65로 환경 성과 개선이 필요한 수준입니다. 연료 효율 개선 노력을 하고 있습니다.",
+  },
+  "United Airlines": {
+    basic_safety: "안전성 점수 9.44로 매우 우수한 안전 기록을 보유하고 있습니다. 체계적인 안전 관리 시스템으로 신뢰할 수 있습니다.",
+    basic_punctuality: "정시성 점수 7.31로 안정적인 운항 스케줄을 제공하지만 일부 지연이 발생할 수 있습니다.",
+    service_cabin: "승무원 서비스 점수 3.0으로 기본적인 서비스만 제공됩니다. 프리미엄 서비스는 추가 비용이 발생할 수 있습니다.",
+    service_meal: "기내식 서비스 점수 6.67로 기본적인 기내식을 제공하지만 선택의 폭이 제한적일 수 있습니다.",
+    service_baggage: "무료 수하물 점수 9로 일반석 기준 23kg까지 허용되어 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 2.92로 라운지 시설이 제한적입니다. 일부 등급에서만 이용 가능합니다.",
+    service_wifi: "기내 인터넷 점수 10으로 무료 Wi-Fi 서비스를 제공하여 비행 중에도 안정적인 인터넷 연결을 이용할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 6.52로 평균적인 좌석 편의성을 제공하지만 장거리 비행에서는 다소 좁을 수 있습니다.",
+    env_env: "환경성 점수 5.23로 환경 성과 개선이 필요한 수준입니다. 지속적인 개선 노력을 하고 있습니다.",
+  },
+  "Hawaiian Airlines": {
+    basic_safety: "안전성 점수 7.04로 양호한 안전 기록을 보유하고 있습니다. 안정적인 운항을 제공합니다.",
+    basic_punctuality: "정시성 점수 7.78로 우수한 시간 준수율을 보입니다. 대부분의 항공편이 정시에 출발합니다.",
+    service_cabin: "승무원 서비스 점수 3.0으로 기본적인 서비스만 제공됩니다. 하와이 문화를 반영한 친절한 서비스를 제공합니다.",
+    service_meal: "기내식 서비스 점수 6.70으로 기본적인 기내식을 제공하며 하와이 특색 메뉴를 선택할 수 있습니다.",
+    service_baggage: "무료 수하물 점수 10으로 일반석 기준 23kg까지 허용되어 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 7.59로 기본적인 라운지 시설을 제공하지만 프리미엄 라운지는 제한적입니다.",
+    service_wifi: "기내 인터넷 점수 10으로 무료 Wi-Fi 서비스를 제공하여 비행 중에도 안정적인 인터넷 연결을 이용할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 7.23으로 평균적인 좌석 편의성을 제공하며 장거리 비행에도 무리가 없습니다.",
+    env_env: "환경성 점수 4.96로 환경 성과 개선이 필요한 수준입니다. 지속적인 개선 노력을 하고 있습니다.",
+  },
+  "Delta Air Lines": {
+    basic_safety: "안전성 점수 9.87로 최고 수준의 안전 기록을 보유하고 있습니다. 세계적으로 인정받는 안전 관리 시스템을 운영합니다.",
+    basic_punctuality: "정시성 점수 7.93로 매우 우수한 시간 준수율을 보입니다. 안정적인 운항 스케줄을 제공합니다.",
+    service_cabin: "승무원 서비스 점수 3.0으로 기본적인 서비스만 제공됩니다. 프리미엄 서비스는 추가 비용이 발생할 수 있습니다.",
+    service_meal: "기내식 서비스 점수 9.19로 매우 우수한 기내식 품질을 자랑합니다. 다양한 메뉴 옵션을 선택할 수 있습니다.",
+    service_baggage: "무료 수하물 점수 10으로 일반석 기준 23kg까지 허용되어 충분한 수하물을 운반할 수 있습니다.",
+    service_lounge: "라운지 이용 점수 8.59로 우수한 라운지 시설을 제공합니다. 편안한 대기 시간을 보낼 수 있습니다.",
+    service_wifi: "기내 인터넷 점수 10으로 무료 Wi-Fi 서비스를 제공하여 비행 중에도 안정적인 인터넷 연결을 이용할 수 있습니다.",
+    service_seat: "좌석 편의성 점수 4.49로 좌석이 다소 좁아 장거리 비행에서는 불편할 수 있습니다.",
+    env_env: "환경성 점수 4.75로 환경 성과 개선이 필요한 수준입니다. 지속적인 개선 노력을 하고 있습니다.",
+  },
+};
 
 // -----------------------------
 // 메타/유틸
@@ -468,6 +736,24 @@ function airlineMeta(airline: string) {
       alliance: "#원월드",
       tags: ["#FSC", "#일본항공", "#서비스우수"],
       blurb: "일본 국적 대형항공사. 서비스 품질 우수.",
+      fscOrLcc: "#FSC",
+    },
+    "Air Premia": {
+      alliance: "#미분류",
+      tags: ["#LCC", "#저비용항공"],
+      blurb: "한국 저비용 항공사. 넓은 좌석 간격과 무료 Wi-Fi가 특징.",
+      fscOrLcc: "#LCC",
+    },
+    "American Airlines": {
+      alliance: "#원월드",
+      tags: ["#FSC", "#미국메가캐리어"],
+      blurb: "미국 메이저 항공사. 최고 수준의 안전성과 광범위한 네트워크.",
+      fscOrLcc: "#FSC",
+    },
+    "Hawaiian Airlines": {
+      alliance: "#원월드",
+      tags: ["#FSC", "#하와이항공"],
+      blurb: "하와이 기반 항공사. 하와이 문화를 반영한 서비스를 제공.",
       fscOrLcc: "#FSC",
     },
   };
@@ -538,7 +824,7 @@ function scoreFlight(
     s_duration * 0.5;
 
   const priceScore = Math.round(s_price * 100);
-  const priceIndex = 100 - priceScore;
+  const priceIndex = priceScore; // 높을수록 유리
 
   const detail = {
     priceScore,
@@ -564,27 +850,61 @@ function reasonTextBiz(
   d: ReturnType<typeof scoreFlight>["detail"]
 ) {
   const meta = airlineMeta(f.airline);
+  const descriptions = AIRLINE_ELEMENT_DESCRIPTIONS[f.airline] || {};
   const lines: string[] = [];
-  if (f.airline === "Korean Air") {
-    lines.push(
-      "대한민국 국적 대형항공사(FSC). 글로벌 허브와 광범위한 네트워크, 우수한 안전/서비스 평가로 장거리 노선에 강점."
-    );
-  } else if (meta.blurb) {
+  
+  // 항공사 기본 설명
+  if (meta.blurb) {
     lines.push(meta.blurb);
   }
+  
   lines.push("선택하신 여행 상황 가중치를 반영했습니다.");
+  
+  // 중요도 높음(2)으로 선택한 요소만 추천 이유에 포함
   const hi: string[] = [];
-  if (vars.service_seat > 0) hi.push(`좌석 편의성 ${d.seatScore}`);
-  if (vars.service_lounge > 0)
-    hi.push(`라운지/휴식 편의 ${Math.round((d.comfortScore + d.seatScore) / 2)}`);
-  if (vars.basic_punctuality > 0) hi.push(`정시성 ${d.ontimeScore}`);
-  if (vars.basic_safety > 0) hi.push(`안전성 반영`);
-  if (vars.env_env > 0) hi.push(`환경 점수 ${d.co2Score}`);
-  if (hi.length)
+  
+  if (vars.price_price === 2) {
+    hi.push(`가격(가성비) 지수 ${d.priceIndex}`);
+  }
+  if (vars.basic_safety === 2 && descriptions.basic_safety) {
+    hi.push(descriptions.basic_safety);
+  }
+  if (vars.basic_punctuality === 2 && descriptions.basic_punctuality) {
+    hi.push(descriptions.basic_punctuality);
+  }
+  if (vars.service_cabin === 2 && descriptions.service_cabin) {
+    hi.push(descriptions.service_cabin);
+  }
+  if (vars.service_meal === 2 && descriptions.service_meal) {
+    hi.push(descriptions.service_meal);
+  }
+  if (vars.service_baggage === 2 && descriptions.service_baggage) {
+    hi.push(descriptions.service_baggage);
+  }
+  if (vars.service_lounge === 2 && descriptions.service_lounge) {
+    hi.push(descriptions.service_lounge);
+  }
+  if (vars.service_wifi === 2 && descriptions.service_wifi) {
+    hi.push(descriptions.service_wifi);
+  }
+  if (vars.service_seat === 2 && descriptions.service_seat) {
+    hi.push(descriptions.service_seat);
+  }
+  if (vars.env_env === 2 && descriptions.env_env) {
+    hi.push(descriptions.env_env);
+  }
+  
+  if (hi.length > 0) {
     lines.push(`특히 **${hi.slice(0, 3).join(" · ")}** 항목이 돋보였습니다.`);
-  lines.push(
-    `또한 **가격(가성비) 지수 ${d.priceIndex} (낮을수록 유리)**도 함께 고려되었습니다.`
-  );
+  }
+  
+  // 가격이 중요도 높음이 아닐 때만 마지막에 가격 정보 표시
+  if (vars.price_price !== 2) {
+    lines.push(
+      `또한 **가격(가성비) 지수 ${d.priceIndex}**도 함께 고려되었습니다.`
+    );
+  }
+  
   return lines.join(" ");
 }
 
@@ -598,7 +918,7 @@ function prng(code: string) {
   };
 }
 
-// ⑤ 요소별 세부 점수 – 새 요소 구조 반영
+// ⑤ 요소별 세부 점수 – 카테고리별 그룹화
 function buildDetailRows(
   f: any,
   d: ReturnType<typeof scoreFlight>["detail"],
@@ -608,78 +928,154 @@ function buildDetailRows(
   const rnd = prng(f.code);
   const fleetAge = (6 + rnd() * 8).toFixed(1);
   const seatPitch = 80 + Math.round(rnd() * 10);
-  const cancelRate = (0.8 + rnd() * 1.8).toFixed(1);
-  const serviceQ = Math.round(82 + rnd() * 15);
-  const bagPolicy = Math.round(80 + rnd() * 20);
-  const family = Math.round(78 + rnd() * 20);
 
-  return [
-    {
-      title: "가격",
-      text: `동일 집단 대비 가격지수 ${d.priceIndex}로 상대적 가격 경쟁력이 있는 편입니다.`,
-      meta: `가격지수 ${d.priceIndex} (낮을수록 저렴)`,
-    },
-    {
-      title: "정시성",
-      text: `정시율 ${d.ontimeScore}% 및 결항률 ${cancelRate}% 수준으로 시간 신뢰도가 양호한 편입니다.`,
-      meta: `정시율 ${d.ontimeScore}% / 결항률 ${cancelRate}%`,
-    },
-    {
-      title: "안전성/기본 신뢰도",
-      text: `안전성·기본 운항 신뢰도는 내부 추정 점수 ${Math.max(
-        85,
-        d.ontimeScore
-      )} 수준으로 평가됩니다.`,
-      meta: `안전성 ${Math.max(85, d.ontimeScore)}`,
-    },
-    {
-      title: "승무원 서비스 품질",
-      text: `승무원 응대·서비스 품질은 지상/기내 서비스 종합 점수 ${serviceQ} 수준으로 예상됩니다.`,
-      meta: `서비스 품질 ${serviceQ}`,
-    },
-    {
-      title: "기내식 서비스 품질",
-      text: `장거리 기준 기내식 만족도는 편안함(Comfort) 지수 ${d.comfortScore}를 반영해 중상 이상의 수준으로 추정됩니다.`,
-      meta: `Comfort ${d.comfortScore}`,
-      selectedMeals: dietary ? (() => {
+  // 항공사별 점수 계산 (사진 데이터 기반)
+  const getAirlineScore = (elementKey: string): number => {
+    const scores = AIRLINE_ELEMENT_SCORES[f.airline] || {};
+    return scores[elementKey] || 0;
+  };
+
+  // 카테고리별로 그룹화
+  const categories: Array<{
+    categoryKey: string;
+    categoryName: string;
+    categoryIcon: string;
+    elements: Array<{
+      key: string;
+      label: string;
+      score: number;
+      scoreText: string;
+      includedData: string;
+      text: string;
+      meta: string;
+      selectedMeals?: string[];
+      requestedBaggageKg?: number;
+    }>;
+  }> = [];
+
+  // CATEGORIES를 순회하며 카테고리별로 그룹화
+  CATEGORIES.forEach((category) => {
+    const elements: Array<{
+      key: string;
+      label: string;
+      score: number;
+      scoreText: string;
+      includedData: string;
+      text: string;
+      meta: string;
+      selectedMeals?: string[];
+      requestedBaggageKg?: number;
+    }> = [];
+
+    category.vars.forEach((varItem) => {
+      const elementKey = varItem.key;
+      let score = 0;
+      let scoreText = "";
+      let text = "";
+      let meta = "";
+
+      // 요소별 점수 및 텍스트 설정 (사진 데이터 기준 0-10 점수)
+      if (elementKey === "price_price") {
+        // 가격은 항공편 가격을 기준으로 상대 점수 계산 (낮은 가격일수록 높은 점수)
+        // f.price가 낮을수록 좋으므로 역수로 변환하여 0-10 점수로 정규화
+        const allPrices = FLIGHTS.map(flight => flight.price);
+        const minPrice = Math.min(...allPrices); // 최저 가격
+        const maxPrice = Math.max(...allPrices); // 최고 가격
+        const priceRange = maxPrice - minPrice;
+        // 가격이 낮을수록 높은 점수 (역수 변환)
+        const priceScore = priceRange > 0 ? 10 * (1 - (f.price - minPrice) / priceRange) : 5;
+        score = Math.max(0, Math.min(10, priceScore));
+        scoreText = `${score.toFixed(1)}점`;
+        text = `동일 집단 대비 가격 경쟁력이 있는 편입니다.`;
+        meta = `가격 점수 ${score.toFixed(1)}점`;
+      } else if (elementKey === "basic_safety") {
+        score = getAirlineScore("basic_safety");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `안전성·기본 운항 신뢰도는 ${score.toFixed(2)}점 수준으로 평가됩니다.`;
+        meta = `안전성 ${score.toFixed(2)}점`;
+      } else if (elementKey === "basic_punctuality") {
+        score = getAirlineScore("basic_punctuality");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `정시율 및 결항률 데이터를 기반으로 ${score.toFixed(2)}점 수준으로 시간 신뢰도가 양호한 편입니다.`;
+        meta = `정시성 ${score.toFixed(2)}점`;
+      } else if (elementKey === "service_cabin") {
+        score = getAirlineScore("service_cabin");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `승무원 응대·서비스 품질은 ${score.toFixed(2)}점 수준으로 예상됩니다.`;
+        meta = `승무원 서비스 ${score.toFixed(2)}점`;
+      } else if (elementKey === "service_meal") {
+        score = getAirlineScore("service_meal");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `장거리 기준 기내식 만족도는 ${score.toFixed(2)}점 수준으로 추정됩니다.`;
+        meta = `기내식 서비스 ${score.toFixed(2)}점`;
+      } else if (elementKey === "service_baggage") {
+        score = getAirlineScore("service_baggage");
+        scoreText = `${score.toFixed(1)}점`;
+        text = `무료 수하물 허용량은 일반석 기준 ${f.baggage}kg이며, 점수는 ${score.toFixed(1)}점 수준입니다.`;
+        meta = `무료 수하물 ${score.toFixed(1)}점 (${f.baggage}kg)`;
+      } else if (elementKey === "service_lounge") {
+        score = getAirlineScore("service_lounge");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `라운지 이용 시 대기 편의성이 향상됩니다.`;
+        meta = `라운지 이용 ${score.toFixed(2)}점`;
+      } else if (elementKey === "service_wifi") {
+        score = getAirlineScore("service_wifi");
+        scoreText = `${score.toFixed(1)}점`;
+        text = `기내 인터넷·엔터테인먼트 품질은 ${score.toFixed(1)}점 수준으로 장거리 업무/엔터테인먼트 환경에 무리가 없는 수준입니다.`;
+        meta = `기내 인터넷 ${score.toFixed(1)}점`;
+      } else if (elementKey === "service_seat") {
+        score = getAirlineScore("service_seat");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `좌석 간격 약 ${seatPitch}cm, 좌석 편의성 점수 ${score.toFixed(2)}점으로 장거리 피로도 감소가 기대됩니다.`;
+        meta = `좌석 편의성 ${score.toFixed(2)}점 / 좌석 간격 ${seatPitch}cm`;
+      } else if (elementKey === "env_env") {
+        score = getAirlineScore("env_env");
+        scoreText = `${score.toFixed(2)}점`;
+        text = `환경 성과는 ${score.toFixed(2)}점 수준이며, 평균 기령 ${fleetAge}년의 기재를 운용하는 것으로 가정했습니다.`;
+        meta = `환경성 ${score.toFixed(2)}점 / 평균 기령 ${fleetAge}년`;
+      }
+
+      const element = {
+        key: elementKey,
+        label: varItem.label,
+        score,
+        scoreText,
+        includedData: varItem.helper,
+        text,
+        meta,
+      };
+
+      // 특수 처리
+      if (elementKey === "service_meal" && dietary) {
         const selected: string[] = [];
-        MEAL_CATEGORIES.forEach(category => {
-          category.meals.forEach(meal => {
+        MEAL_CATEGORIES.forEach((cat) => {
+          cat.meals.forEach((meal) => {
             if (dietary[meal.key]) {
               selected.push(meal.label);
             }
           });
         });
-        return selected;
-      })() : undefined,
-    },
-    {
-      title: "좌석·라운지 편의",
-      text: `좌석 간격 약 ${seatPitch}cm, 좌석 품질 점수 ${d.seatScore}로 장거리 피로도 감소가 기대되며, 라운지 이용 시 대기 편의성이 향상됩니다.`,
-      meta: `좌석 품질 ${d.seatScore} / 좌석 간격 ${seatPitch}cm`,
-    },
-    {
-      title: "기내 인터넷 서비스(Wi-Fi)",
-      text: `기내 인터넷·엔터테인먼트 품질은 좌석·편안함 지표를 기반으로 장거리 업무/엔터테인먼트 환경에 무리가 없는 수준으로 가정했습니다.`,
-      meta: `편안함(Comfort) ${d.comfortScore}`,
-    },
-    {
-      title: "환경 성과",
-      text: `좌석-km 기준 탄소 지표 ${100 - d.co2Score} 수준이며, 평균 기령 ${fleetAge}년의 기재를 운용하는 것으로 가정했습니다.`,
-      meta: `탄소 ${100 - d.co2Score} / 평균 기령 ${fleetAge}년`,
-    },
-    {
-      title: "무료 수하물 허용량",
-      text: `무료 수하물 정책 점수 ${bagPolicy} 및 요청 수하물 무게 대비 충족도 ${d.baggageFit}% 수준으로, 장기 체류·가족 여행 시에도 비교적 여유 있는 편입니다.`,
-      meta: `정책 점수 ${bagPolicy} / 충족도 ${d.baggageFit}%`,
-      requestedBaggageKg: baggageKg && baggageKg > 0 ? baggageKg : undefined,
-    },
-    {
-      title: "아이 동반·가족 편의",
-      text: `가족/유아 동반 고객 편의 점수 ${family}로, 유아용 서비스·탑승 지원 측면에서 평균 이상 수준을 가정했습니다.`,
-      meta: `가족/유아 편의 ${family}`,
-    },
-  ];
+        (element as any).selectedMeals = selected.length > 0 ? selected : undefined;
+      }
+
+      if (elementKey === "service_baggage" && baggageKg && baggageKg > 0) {
+        (element as any).requestedBaggageKg = baggageKg;
+      }
+
+      elements.push(element as any);
+    });
+
+    if (elements.length > 0) {
+      categories.push({
+        categoryKey: category.key,
+        categoryName: category.name,
+        categoryIcon: category.icon,
+        elements,
+      });
+    }
+  });
+
+  return categories;
 }
 
 function co2Tag(f: any) {
@@ -733,7 +1129,7 @@ export default function App() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 'profile' | 'review' | 'community'>(1);
   const [selectedDeparture, setSelectedDeparture] = useState<string>("ICN");
   const [selectedDest, setSelectedDest] = useState<string>("US-NYC");
-  const [date, setDate] = useState<string>("2024-12-19");
+  const [date, setDate] = useState<string>("2025-12-19");
   const [passengers] = useState<number>(1);
   const [seatClass] = useState<string>("일반석");
   const [showDepartureModal, setShowDepartureModal] = useState<boolean>(false);
@@ -769,15 +1165,6 @@ export default function App() {
     }
   }, [step]);
 
-  // 리뷰 페이지로 이동할 때 폼 초기화
-  useEffect(() => {
-    if (step === 'review') {
-      setAirline('');
-      setRoute('');
-      setRating(5);
-      setReviewText('');
-    }
-  }, [step]);
 
   // 날짜 모달이 열릴 때 자동으로 캘린더 열기
   useEffect(() => {
@@ -870,8 +1257,106 @@ export default function App() {
   const [profileExpandedMealCategories, setProfileExpandedMealCategories] = useState<Record<string, boolean>>({});
   const [airline, setAirline] = useState('');
   const [route, setRoute] = useState('');
-  const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
+  const [bookingRecords, setBookingRecords] = useState<BookingRecord[]>(BOOKING_RECORDS);
+  
+  // 세부 항목별 별점 상태
+  const [reviewRatings, setReviewRatings] = useState({
+    punctuality: 5, // 정시성
+    crewService: 5, // 승무원 서비스 품질
+    mealService: 5, // 기내식 서비스 품질
+    loungeService: 5, // 라운지 이용 편의성
+    wifiService: 5, // 기내 인터넷 서비스
+    seatComfort: 5, // 좌석 편의성
+  });
+  
+  // 기내식 옵션 선택 상태 (기존 - 호환성을 위해 유지)
+  const [reviewMealOptions, setReviewMealOptions] = useState<Record<string, boolean>>({});
+  
+  // 좌석 등급 선택 상태
+  const [seatClassReview, setSeatClassReview] = useState<string>('');
+  
+  // 라운지 선택 상태
+  const [selectedLounge, setSelectedLounge] = useState<string>('');
+  
+  // 사고 발생 관련 상태
+  const [hasIncident, setHasIncident] = useState<boolean>(false);
+  const [incidentType, setIncidentType] = useState<string>('');
+  const [incidentCompensation, setIncidentCompensation] = useState<string>('');
+  const [incidentResponse, setIncidentResponse] = useState<string>('');
+  
+  // 기내식 리뷰 상태 (새로운 형식)
+  const [selectedMealSeatClass, setSelectedMealSeatClass] = useState<string>('');
+  const [selectedMealOption, setSelectedMealOption] = useState<string>('');
+  const [mealPhotos, setMealPhotos] = useState<string[]>([]);
+  const [showSeatClassDropdown, setShowSeatClassDropdown] = useState<boolean>(false);
+  const [showMealOptionDropdown, setShowMealOptionDropdown] = useState<boolean>(false);
+  
+  // 커뮤니티 공유 리뷰 상태
+  const [communityReviews, setCommunityReviews] = useState<Array<{
+    id: string;
+    airline: string;
+    route: string;
+    rating: number;
+    text: string;
+    author: string;
+    date: string;
+    ratings?: {
+      punctuality: number;
+      crewService: number;
+      mealService: number;
+      loungeService: number;
+      wifiService: number;
+      seatComfort: number;
+    };
+    mealInfo?: string;
+    mealPhotos?: string[];
+    incident?: {
+      type: string;
+      compensation?: string;
+      response?: string;
+    };
+  }>>([]);
+  
+  // 크레딧 상태
+  const [credits, setCredits] = useState<number>(0);
+  const [showCreditNotification, setShowCreditNotification] = useState<boolean>(false);
+  
+  // 커뮤니티 필터 상태
+  const [communityFilterAirline, setCommunityFilterAirline] = useState<string>('');
+  const [communitySearchKeyword, setCommunitySearchKeyword] = useState<string>('');
+
+  // 리뷰 페이지로 이동할 때 폼 초기화
+  useEffect(() => {
+    if (step === 'review') {
+      if (!selectedBooking) {
+        setAirline('');
+        setRoute('');
+      }
+      setReviewRatings({
+        punctuality: 5,
+        crewService: 5,
+        mealService: 5,
+        loungeService: 5,
+        wifiService: 5,
+        seatComfort: 5,
+      });
+      setReviewMealOptions({});
+      setSeatClassReview('');
+      setSelectedLounge('');
+      setReviewText('');
+      setHasIncident(false);
+      setIncidentType('');
+      setIncidentCompensation('');
+      setIncidentResponse('');
+      setSelectedMealSeatClass('');
+      setSelectedMealOption('');
+      setMealPhotos([]);
+      setShowSeatClassDropdown(false);
+      setShowMealOptionDropdown(false);
+    }
+  }, [step, selectedBooking]);
 
   useEffect(() => {
     try {
@@ -1077,44 +1562,54 @@ export default function App() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setStep('profile')}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
-            aria-label="개인 페이지"
-          >
-            <svg
-              className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative group">
+            <button
+              onClick={() => setStep('profile')}
+              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              aria-label="개인 페이지"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={() => setStep('community')}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg"
-            aria-label="커뮤니티"
-          >
-            <svg
-              className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+              <svg
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </button>
+            <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+              내 선호 입력하기, 리뷰 남기고 500 크레딧 받기
+            </div>
+          </div>
+          <div className="relative group">
+            <button
+              onClick={() => setStep('community')}
+              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              aria-label="커뮤니티"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </button>
+            <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+              다른 사람의 리뷰 확인하기
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1152,11 +1647,11 @@ export default function App() {
     subtitle?: string;
     children: React.ReactNode;
   }) => (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <BackBar />
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-7 sm:mb-10">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 text-blue-700">
             {title}
           </h1>
           {subtitle && (
@@ -1203,11 +1698,11 @@ export default function App() {
     const destInfo = getDestInfo(selectedDest);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <BackBar />
         <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
           <div className="mb-7 sm:mb-10">
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 text-blue-700">
               ① 항공편 검색
             </h1>
             <p className="text-sm sm:text-lg text-gray-600">출발지, 도착지, 출발 날짜, 인원, 좌석을 선택하여 항공편을 검색하세요</p>
@@ -1516,11 +2011,11 @@ export default function App() {
   // -----------------------------
   if (step === 2) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <BackBar />
         <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
           <div className="mb-7 sm:mb-10">
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 text-blue-700">
               ② 중요도 설정
             </h1>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -1548,7 +2043,7 @@ export default function App() {
                   setSelectedSituationKey("custom");
                   setStep(3);
                 }}
-                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm sm:text-base font-semibold hover:shadow-lg transition-all hover:scale-105 whitespace-nowrap"
+                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg whitespace-nowrap"
               >
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5"
@@ -1600,7 +2095,7 @@ export default function App() {
               }}
               className={`group relative rounded-2xl border-2 p-4 sm:p-6 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                 i === 0
-                  ? "border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50"
+                  ? "border-blue-300 bg-blue-50"
                   : "border-gray-200 bg-white hover:border-blue-300"
               }`}
             >
@@ -1645,7 +2140,7 @@ export default function App() {
                   </div>
                 );
               })()}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-5 transition-opacity" />
+              <div className="absolute inset-0 rounded-2xl bg-blue-100 opacity-0 group-hover:opacity-10 transition-opacity" />
             </button>
           ))}
           </div>
@@ -1819,7 +2314,7 @@ export default function App() {
           </div>
         )}
         <div className="text-[11px] sm:text-xs text-gray-500 mt-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg">
-          <strong>📊 포함 데이터:</strong> {helper}
+          <strong>포함 데이터:</strong> {helper}
         </div>
       </div>
     );
@@ -1864,7 +2359,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => setBulk(cat.key, 2)}
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
                   >
                     높음
                   </button>
@@ -1892,7 +2387,7 @@ export default function App() {
               setStep(4);
               window.scrollTo(0, 0);
             }}
-            className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm sm:text-lg font-bold hover:shadow-2xl transition-all hover:scale-105"
+            className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-blue-600 text-white text-sm sm:text-lg font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
           >
             <svg
               className="w-5 h-5 sm:w-6 sm:h-6"
@@ -2248,7 +2743,7 @@ export default function App() {
 
 const top3 = ranked.slice(0, 3);
 return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* 큰 화면에서는 상단에 BackBar, 작은 화면에서는 하단에 */}
       <div className="hidden lg:block">
         <BackBar />
@@ -2266,7 +2761,7 @@ return (
           <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
             <div className="mb-7 sm:mb-10 flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 text-blue-700">
                   ④ 추천 항공편 결과
                 </h1>
                 <p className="text-sm sm:text-lg text-gray-600">설정하신 중요도를 반영한 당신의 맞춤형 항공편 추천 결과입니다</p>
@@ -2292,7 +2787,7 @@ return (
                       }, 150);
                     });
                   }}
-                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm sm:text-base font-semibold hover:shadow-lg transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                   aria-label="중요도 변경"
                 >
                   <svg
@@ -2339,7 +2834,7 @@ const isOpen = !!expanded[f.code];
             className="group relative bg-white rounded-2xl border-2 border-gray-200 p-7 hover:border-blue-300 hover:shadow-2xl transition-all duration-300"
           >
             {/* 순위 배지 */}
-            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl shadow-lg">
+            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-2xl shadow-lg">
               {rankEmoji(idx)}
             </div>
 
@@ -2355,7 +2850,7 @@ const isOpen = !!expanded[f.code];
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-gray-700 border border-gray-200"
+                      className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-gray-700 border border-gray-200"
                     >
                       {t}
                     </span>
@@ -2364,7 +2859,7 @@ const isOpen = !!expanded[f.code];
               </div>
 
               {/* 점수 표시 */}
-              <div className="shrink-0 text-center bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+              <div className="shrink-0 text-center bg-blue-600 rounded-2xl p-6 text-white shadow-lg">
                 <div className="text-5xl font-black leading-none mb-1">
                   {score100}
                 </div>
@@ -2375,7 +2870,7 @@ const isOpen = !!expanded[f.code];
             </div>
 
             {/* 항공편 정보 */}
-            <div className="mt-5 p-5 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+            <div className="mt-5 p-5 bg-blue-50 rounded-xl border border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-sm">
                 <div className="font-semibold text-gray-900">
                   <div className="text-xs text-gray-500 mb-1">
@@ -2413,7 +2908,7 @@ const isOpen = !!expanded[f.code];
                     onClick={() =>
                       alert("예약 페이지는 준비 중입니다")
                     }
-                    className="mt-2 w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-lg transition-all hover:scale-105"
+                    className="mt-2 w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                   >
                     예약하기
                   </button>
@@ -2424,7 +2919,7 @@ const isOpen = !!expanded[f.code];
             {/* 추천 이유 */}
             <div className="mt-5 p-5 bg-blue-50 rounded-xl border border-blue-200">
               <div className="text-sm font-semibold text-blue-900 mb-2">
-                📝 추천 이유
+                추천 이유
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {reason}
@@ -2477,47 +2972,82 @@ const isOpen = !!expanded[f.code];
               </button>
 
               {isOpen && (
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm animate-fadeIn">
-                  {rows.map((r) => (
+                <div className="mt-4 space-y-6 animate-fadeIn">
+                  {rows.map((category) => (
                     <div
-                      key={r.title}
-                      className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all"
+                      key={category.categoryKey}
+                      className="bg-white rounded-xl border-2 border-gray-200 p-5 hover:shadow-lg transition-all"
                     >
-                      <div className="font-bold text-gray-900 mb-2">
-                        {r.title}
+                      {/* 카테고리 헤더 */}
+                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-300">
+                        <span className="text-2xl">{category.categoryIcon}</span>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {category.categoryName}
+                        </h3>
                       </div>
-                      <div className="text-gray-700 mb-2">
-                        {r.text}
+
+                      {/* 카테고리 내 요소들 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {category.elements.map((element) => (
+                          <div
+                            key={element.key}
+                            className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                          >
+                            {/* 요소 헤더 (이름 + 점수) */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="font-bold text-gray-900">
+                                {element.label}
+                              </div>
+                              <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-sm font-bold">
+                                {element.scoreText}
+                              </div>
+                            </div>
+
+                            {/* 포함 데이터 설명 */}
+                            <div className="mb-3">
+                              <div className="text-xs font-semibold text-gray-600 mb-1">
+                                포함 데이터:
+                              </div>
+                              <div className="text-xs text-gray-700 bg-gray-50 rounded px-2 py-1.5">
+                                {element.includedData}
+                              </div>
+                            </div>
+
+                            {/* 상세 설명 */}
+                            <div className="text-sm text-gray-700 mb-2">
+                              {element.text}
+                            </div>
+
+                            {/* 선택한 기내식 옵션 표시 */}
+                            {element.key === "service_meal" && element.selectedMeals && element.selectedMeals.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="text-xs font-semibold text-gray-700 mb-1.5">
+                                  선택한 기내식 옵션:
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {element.selectedMeals.map((meal, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium"
+                                    >
+                                      {meal}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 선택한 무료 수하물 허용량 표시 */}
+                            {element.key === "service_baggage" && element.requestedBaggageKg && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="text-xs font-semibold text-gray-700">
+                                  요청한 무료 수하물 허용량: <span className="text-blue-600 font-bold">{element.requestedBaggageKg}kg 이상</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 inline-block">
-                        {r.meta}
-                      </div>
-                      {/* 선택한 기내식 옵션 표시 */}
-                      {r.title === "기내식 서비스 품질" && r.selectedMeals && r.selectedMeals.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="text-xs font-semibold text-gray-700 mb-1.5">
-                            선택한 기내식 옵션:
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {r.selectedMeals.map((meal, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium"
-                              >
-                                {meal}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {/* 선택한 무료 수하물 허용량 표시 */}
-                      {r.title === "무료 수하물 허용량" && r.requestedBaggageKg && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="text-xs font-semibold text-gray-700">
-                            요청한 무료 수하물 허용량: <span className="text-blue-600 font-bold">{r.requestedBaggageKg}kg 이상</span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -2528,7 +3058,7 @@ const isOpen = !!expanded[f.code];
             <div className="mt-6">
               <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden shadow-inner">
                 <div
-                  className="h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000 ease-out shadow-lg"
+                  className="h-3 bg-blue-600 rounded-full transition-all duration-1000 ease-out shadow-lg"
                   style={{ width: `${Math.min(100, score100)}%` }}
                 />
               </div>
@@ -2548,7 +3078,7 @@ const isOpen = !!expanded[f.code];
             sidebarOpen 
               ? 'fixed lg:fixed' 
               : 'hidden lg:hidden'
-          } lg:sticky top-0 right-0 h-screen lg:h-screen lg:max-h-screen bg-white border-l border-gray-200 shadow-2xl z-40 transition-all duration-300 overflow-y-auto flex-shrink-0 ${
+          } lg:sticky top-0 right-0 h-screen lg:h-screen lg:max-h-screen bg-white border-r border-gray-200 shadow-2xl z-40 transition-all duration-300 overflow-y-auto flex-shrink-0 order-2 lg:order-2 ${
             sidebarOpen ? 'translate-x-0' : 'translate-x-full'
           } ${sidebarOpen ? 'w-full sm:w-96 lg:w-80 xl:w-96' : 'w-0 lg:w-0'}`}
           style={sidebarOpen && step === 4 ? { scrollBehavior: 'auto' } : undefined}
@@ -2609,7 +3139,7 @@ const isOpen = !!expanded[f.code];
                       </button>
                       <button
                         onClick={() => setBulk(cat.key, 2)}
-                        className="flex-1 px-2 py-1.5 rounded-lg border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-50 transition-all text-xs font-medium whitespace-nowrap"
+                        className="flex-1 px-2 py-1.5 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs font-medium whitespace-nowrap"
                       >
                         높음
                       </button>
@@ -2800,7 +3330,7 @@ const isOpen = !!expanded[f.code];
           </div>
         )}
         <div className="text-[11px] sm:text-xs text-gray-500 mt-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg">
-          <strong>📊 포함 데이터:</strong> {helper}
+          <strong>포함 데이터:</strong> {helper}
         </div>
       </div>
     );
@@ -2870,7 +3400,7 @@ const isOpen = !!expanded[f.code];
                       </button>
                       <button
                         onClick={() => setBulk(cat.key, 2)}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
                       >
                         높음
                       </button>
@@ -2893,7 +3423,7 @@ const isOpen = !!expanded[f.code];
               <div className="mt-8 sm:mt-10 flex justify-center">
                 <button
                   onClick={handleSavePreferences}
-                  className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm sm:text-lg font-bold hover:shadow-2xl transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-blue-600 text-white text-sm sm:text-lg font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-5 h-5 sm:w-6 sm:h-6"
@@ -2916,14 +3446,89 @@ const isOpen = !!expanded[f.code];
 
           {/* 리뷰 남기기 */}
           {activeTab === 'review' && (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-6">리뷰를 작성하려면 아래 버튼을 클릭하세요.</p>
-              <button
-                onClick={() => setStep('review')}
-                className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm sm:text-lg font-bold hover:shadow-2xl transition-all hover:scale-105"
-              >
-                리뷰 작성하기
-              </button>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">예매한 항공권</h3>
+                <p className="text-sm text-gray-600 mb-6">탑승 완료된 항공편에 대해 리뷰를 작성할 수 있습니다.</p>
+              </div>
+
+              {bookingRecords.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                  <p className="text-gray-600">예매한 항공권이 없습니다.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {bookingRecords.map((booking) => {
+                    const f = booking.flight;
+                    const routeText = `${f.depart.split(' ')[1]} → ${f.arrive.split(' ')[1]}`;
+                    const isCompleted = booking.status === 'completed';
+                    
+                    return (
+                      <div
+                        key={booking.id}
+                        className={`bg-white rounded-xl border-2 p-5 transition-all ${
+                          isCompleted
+                            ? 'border-gray-200 hover:border-blue-300 hover:shadow-lg'
+                            : 'border-gray-200 opacity-75'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-gray-900">{f.airline}</span>
+                              <span className="text-sm text-gray-500">{f.code}</span>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-2">
+                              {routeText}
+                            </div>
+                            <div className="text-xs text-gray-500 space-y-1">
+                              <div>탑승일: {booking.flightDate}</div>
+                              <div>예매일: {booking.bookingDate}</div>
+                            </div>
+                          </div>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            isCompleted
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {isCompleted ? '탑승 완료' : '탑승 예정'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                          <span>{f.depart}</span>
+                          <span>→</span>
+                          <span>{f.arrive}</span>
+                          <span className="ml-auto">{f.duration.toFixed(1)}시간</span>
+                        </div>
+
+                        {isCompleted ? (
+                          <button
+                            onClick={() => {
+                              setSelectedBooking(booking);
+                              setAirline(f.airline);
+                              setRoute(routeText);
+                              setStep('review');
+                            }}
+                            className={`w-full px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                              booking.hasReview
+                                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                            }`}
+                            disabled={booking.hasReview}
+                          >
+                            {booking.hasReview ? '리뷰 작성 완료' : '리뷰 작성하기'}
+                          </button>
+                        ) : (
+                          <div className="w-full px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 text-gray-400 text-center">
+                            탑승 후 리뷰 작성 가능
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -2937,19 +3542,230 @@ const isOpen = !!expanded[f.code];
   // -----------------------------
   if (step === 'review') {
 
-    const handleSubmitReview = () => {
-      if (!airline || !route || !reviewText) {
-        alert('모든 필드를 입력해주세요.');
-        return;
+    const handleShareToCommunity = () => {
+      // 예매 기록에 리뷰 작성 여부 업데이트
+      if (selectedBooking) {
+        setBookingRecords(prev => 
+          prev.map(booking => 
+            booking.id === selectedBooking.id 
+              ? { ...booking, hasReview: true }
+              : booking
+          )
+        );
       }
-      // 여기서는 alert로만 표시, 실제로는 서버에 저장
-      alert(`리뷰가 제출되었습니다!\n항공사: ${airline}\n노선: ${route}\n별점: ${rating}/5\n후기: ${reviewText}`);
-      // 제출 후 초기화
+      
+      // 커뮤니티에 리뷰 추가
+      const mealSeatClassName = selectedMealSeatClass ? SEAT_CLASSES.find(s => s.value === selectedMealSeatClass)?.label : '';
+      const mealInfo = selectedMealSeatClass && selectedMealOption 
+        ? `${mealSeatClassName}에서 ${selectedMealOption}을 식사했어요`
+        : undefined;
+      
+      const incidentTypeMap: Record<string, string> = {
+        'baggage-delay': '수하물 지연',
+        'baggage-arrival-delay': '수하물 도착 지연',
+        'flight-delay-2h': '2시간 이상 지연',
+        'flight-cancellation': '항공편 취소',
+        'safety-incident': '안전 사고',
+        'overbooking': '오버부킹',
+        'seat-change': '좌석 변경',
+        'service-issue': '서비스 문제',
+        'other': '기타'
+      };
+      
+      const newReview = {
+        id: Date.now().toString(),
+        airline: airline || '미입력',
+        route: route || '미입력',
+        rating: Math.round((reviewRatings.punctuality + reviewRatings.crewService + reviewRatings.mealService + reviewRatings.loungeService + reviewRatings.wifiService + reviewRatings.seatComfort) / 6),
+        text: reviewText || '후기 없음',
+        author: "익명 사용자",
+        date: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '.').replace(/\s/g, ''),
+        ratings: { ...reviewRatings },
+        mealInfo: mealInfo,
+        mealPhotos: mealPhotos.length > 0 ? mealPhotos : undefined,
+        incident: hasIncident ? {
+          type: incidentTypeMap[incidentType] || incidentType,
+          compensation: incidentCompensation || undefined,
+          response: incidentResponse || undefined,
+        } : undefined,
+      };
+      
+      setCommunityReviews(prev => [newReview, ...prev]);
+      
+      // 크레딧 추가
+      setCredits(prev => prev + 500);
+      setShowCreditNotification(true);
+      setTimeout(() => setShowCreditNotification(false), 3000);
+      
+      alert('커뮤니티에 리뷰가 공유되었습니다!');
+      
+      // 제출 후 커뮤니티 페이지로 이동
+      setSelectedBooking(null);
       setAirline('');
       setRoute('');
-      setRating(5);
+      setReviewRatings({
+        punctuality: 5,
+        crewService: 5,
+        mealService: 5,
+        loungeService: 5,
+        wifiService: 5,
+        seatComfort: 5,
+      });
+      setReviewMealOptions({});
+      setSeatClassReview('');
+      setSelectedLounge('');
       setReviewText('');
+      setHasIncident(false);
+      setIncidentType('');
+      setIncidentCompensation('');
+      setIncidentResponse('');
+      setSelectedMealSeatClass('');
+      setSelectedMealOption('');
+      setMealPhotos([]);
+      setShowSeatClassDropdown(false);
+      setShowMealOptionDropdown(false);
+      setStep('community');
     };
+    
+    const handleSubmitReview = () => {
+      // 예매 기록에 리뷰 작성 여부 업데이트
+      if (selectedBooking) {
+        setBookingRecords(prev => 
+          prev.map(booking => 
+            booking.id === selectedBooking.id 
+              ? { ...booking, hasReview: true }
+              : booking
+          )
+        );
+      }
+      
+      // 여기서는 alert로만 표시, 실제로는 서버에 저장
+      const selectedLoungeName = selectedLounge ? LOUNGES.find(l => l.id === selectedLounge)?.name : '없음';
+      const seatClassName = seatClassReview ? SEAT_CLASSES.find(s => s.value === seatClassReview)?.label : '미선택';
+      
+      // 새로운 기내식 정보
+      const mealSeatClassName = selectedMealSeatClass ? SEAT_CLASSES.find(s => s.value === selectedMealSeatClass)?.label : '';
+      const mealInfo = selectedMealSeatClass && selectedMealOption 
+        ? `${mealSeatClassName}에서 ${selectedMealOption}을 식사했어요`
+        : '없음';
+      
+      // 사고 유형 한글 매핑
+      const incidentTypeMap: Record<string, string> = {
+        'baggage-delay': '수하물 지연',
+        'baggage-arrival-delay': '수하물 도착 지연',
+        'flight-delay-2h': '2시간 이상 지연',
+        'flight-cancellation': '항공편 취소',
+        'safety-incident': '안전 사고',
+        'overbooking': '오버부킹',
+        'seat-change': '좌석 변경',
+        'service-issue': '서비스 문제',
+        'other': '기타'
+      };
+      const incidentTypeName = incidentType ? incidentTypeMap[incidentType] || incidentType : '없음';
+      
+      let reviewMessage = `리뷰가 제출되었습니다!`;
+      if (airline || route) {
+        reviewMessage += `\n항공사: ${airline || '미입력'}\n노선: ${route || '미입력'}`;
+      }
+      reviewMessage += `\n정시성: ${reviewRatings.punctuality}/5\n승무원 서비스: ${reviewRatings.crewService}/5\n기내식 서비스: ${reviewRatings.mealService}/5\n라운지 이용: ${reviewRatings.loungeService}/5\n기내 인터넷: ${reviewRatings.wifiService}/5\n좌석 편의성: ${reviewRatings.seatComfort}/5`;
+      if (seatClassName !== '미선택') {
+        reviewMessage += `\n좌석 등급: ${seatClassName}`;
+      }
+      if (selectedLoungeName !== '없음') {
+        reviewMessage += `\n라운지: ${selectedLoungeName}`;
+      }
+      if (mealInfo !== '없음') {
+        reviewMessage += `\n기내식: ${mealInfo}`;
+      }
+      if (mealPhotos.length > 0) {
+        reviewMessage += `\n기내식 사진: ${mealPhotos.length}장`;
+      }
+      
+      if (hasIncident) {
+        reviewMessage += `\n\n[사고 발생]\n사고 유형: ${incidentTypeName}`;
+        if (incidentCompensation) {
+          reviewMessage += `\n보상: ${incidentCompensation}`;
+        }
+        if (incidentResponse) {
+          reviewMessage += `\n항공사 대처: ${incidentResponse}`;
+        }
+      }
+      
+      if (reviewText) {
+        reviewMessage += `\n\n후기: ${reviewText}`;
+      }
+      
+      alert(reviewMessage);
+      
+      // 크레딧 추가
+      setCredits(prev => prev + 500);
+      setShowCreditNotification(true);
+      setTimeout(() => setShowCreditNotification(false), 3000);
+      
+      // 제출 후 개인페이지로 이동
+      setSelectedBooking(null);
+      setAirline('');
+      setRoute('');
+      setReviewRatings({
+        punctuality: 5,
+        crewService: 5,
+        mealService: 5,
+        loungeService: 5,
+        wifiService: 5,
+        seatComfort: 5,
+      });
+      setReviewMealOptions({});
+      setSeatClassReview('');
+      setSelectedLounge('');
+      setReviewText('');
+      setHasIncident(false);
+      setIncidentType('');
+      setIncidentCompensation('');
+      setIncidentResponse('');
+      setSelectedMealSeatClass('');
+      setSelectedMealOption('');
+      setMealPhotos([]);
+      setShowSeatClassDropdown(false);
+      setShowMealOptionDropdown(false);
+      setStep('profile');
+      setActiveTab('review');
+    };
+    
+    // 별점 컴포넌트
+    const StarRating = ({ 
+      value, 
+      onChange, 
+      label 
+    }: { 
+      value: number; 
+      onChange: (value: number) => void; 
+      label: string;
+    }) => (
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">
+          {label}
+        </label>
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => onChange(star)}
+              className={`text-2xl sm:text-3xl transition-all ${
+                star <= value
+                  ? 'text-yellow-400'
+                  : 'text-gray-300'
+              } hover:scale-110`}
+            >
+              ★
+            </button>
+          ))}
+          <span className="ml-2 text-sm text-gray-600">
+            {value}/5
+          </span>
+        </div>
+      </div>
+    );
 
     return (
       <Page
@@ -2958,6 +3774,89 @@ const isOpen = !!expanded[f.code];
       >
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
+            {selectedBooking && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <div className="text-sm font-semibold text-blue-900 mb-2">선택한 항공편</div>
+                <div className="text-sm text-gray-700">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold">{selectedBooking.flight.airline}</span>
+                    <span className="text-gray-500">{selectedBooking.flight.code}</span>
+                  </div>
+                  <div className="text-gray-600">
+                    {selectedBooking.flight.depart} → {selectedBooking.flight.arrive}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    탑승일: {selectedBooking.flightDate}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* 사고 발생 버튼 */}
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => setHasIncident(!hasIncident)}
+                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all ${
+                  hasIncident
+                    ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                    : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200'
+                }`}
+              >
+                {hasIncident ? '✓ 사고가 발생했어요' : '사고가 발생했어요'}
+              </button>
+              
+              {hasIncident && (
+                <div className="mt-4 p-5 bg-red-50 border-2 border-red-200 rounded-xl space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      사고 유형 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={incidentType}
+                      onChange={(e) => setIncidentType(e.target.value)}
+                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">사고 유형을 선택하세요</option>
+                      <option value="baggage-delay">수하물 지연</option>
+                      <option value="baggage-arrival-delay">수하물 도착 지연</option>
+                      <option value="flight-delay-2h">2시간 이상 지연</option>
+                      <option value="flight-cancellation">항공편 취소</option>
+                      <option value="safety-incident">안전 사고</option>
+                      <option value="overbooking">오버부킹</option>
+                      <option value="seat-change">좌석 변경</option>
+                      <option value="service-issue">서비스 문제</option>
+                      <option value="other">기타</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      보상
+                    </label>
+                    <textarea
+                      value={incidentCompensation}
+                      onChange={(e) => setIncidentCompensation(e.target.value)}
+                      placeholder="항공사로부터 받은 보상 내용을 입력하세요 (예: 마일리지 지급, 환불, 바우처 제공 등)"
+                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[100px] resize-y"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      항공사의 대처
+                    </label>
+                    <textarea
+                      value={incidentResponse}
+                      onChange={(e) => setIncidentResponse(e.target.value)}
+                      placeholder="항공사가 사고에 대해 어떻게 대처했는지 입력하세요 (예: 즉시 사과, 대체 항공편 제공, 호텔 제공 등)"
+                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[100px] resize-y"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
                 항공사
@@ -2967,7 +3866,12 @@ const isOpen = !!expanded[f.code];
                 value={airline}
                 onChange={(e) => setAirline(e.target.value)}
                 placeholder="예: Korean Air"
-                className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                readOnly={!!selectedBooking}
+                className={`w-full border-2 rounded-xl px-4 py-3 text-base transition-all outline-none ${
+                  selectedBooking
+                    ? 'border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+                }`}
               />
             </div>
 
@@ -2980,32 +3884,253 @@ const isOpen = !!expanded[f.code];
                 value={route}
                 onChange={(e) => setRoute(e.target.value)}
                 placeholder="예: ICN → NYC"
-                className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                readOnly={!!selectedBooking}
+                className={`w-full border-2 rounded-xl px-4 py-3 text-base transition-all outline-none ${
+                  selectedBooking
+                    ? 'border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+                }`}
               />
             </div>
 
-            <div>
-              <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
-                별점
-              </label>
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className={`text-3xl sm:text-4xl transition-all ${
-                      star <= rating
-                        ? 'text-yellow-400'
-                        : 'text-gray-300'
-                    } hover:scale-110`}
-                  >
-                    ★
-                  </button>
-                ))}
-                <span className="ml-2 text-sm sm:text-base text-gray-600">
-                  {rating}/5
-                </span>
+            {/* 세부 항목별 별점 */}
+            <div className="space-y-6 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">세부 평가</h3>
+              
+              {/* 정시성 */}
+              <StarRating
+                value={reviewRatings.punctuality}
+                onChange={(value) => setReviewRatings(prev => ({ ...prev, punctuality: value }))}
+                label="정시성"
+              />
+              
+              {/* 승무원 서비스 품질 */}
+              <StarRating
+                value={reviewRatings.crewService}
+                onChange={(value) => setReviewRatings(prev => ({ ...prev, crewService: value }))}
+                label="승무원 서비스 품질"
+              />
+              
+              {/* 기내식 서비스 품질 */}
+              <div className="space-y-4">
+                <StarRating
+                  value={reviewRatings.mealService}
+                  onChange={(value) => setReviewRatings(prev => ({ ...prev, mealService: value }))}
+                  label="기내식 서비스 품질"
+                />
+                
+                {/* 기내식 선택: (좌석)에서 (옵션)을 식사했어요 */}
+                <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                  <div className="text-base text-gray-700">
+                    <span className="inline-flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowSeatClassDropdown(!showSeatClassDropdown);
+                          setShowMealOptionDropdown(false);
+                        }}
+                        className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                          selectedMealSeatClass
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-500 border-2 border-gray-300 hover:border-blue-500'
+                        }`}
+                      >
+                        {selectedMealSeatClass 
+                          ? SEAT_CLASSES.find(s => s.value === selectedMealSeatClass)?.label || '좌석 선택'
+                          : '좌석'}
+                      </button>
+                    </span>
+                    <span className="mx-2">에서</span>
+                    <span className="inline-flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMealOptionDropdown(!showMealOptionDropdown);
+                          setShowSeatClassDropdown(false);
+                        }}
+                        className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                          selectedMealOption
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-500 border-2 border-gray-300 hover:border-blue-500'
+                        }`}
+                      >
+                        {selectedMealOption || '옵션'}
+                      </button>
+                    </span>
+                    <span className="ml-2">을 식사했어요.</span>
+                  </div>
+                  
+                  {/* 좌석 등급 드롭다운 */}
+                  {showSeatClassDropdown && (
+                    <div className="relative">
+                      <div className="absolute z-10 w-full bg-white border-2 border-gray-300 rounded-lg shadow-lg mt-2 max-h-48 overflow-y-auto">
+                        {SEAT_CLASSES.map((seatClass) => (
+                          <button
+                            key={seatClass.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedMealSeatClass(seatClass.value);
+                              setShowSeatClassDropdown(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors ${
+                              selectedMealSeatClass === seatClass.value ? 'bg-blue-100 font-semibold' : ''
+                            }`}
+                          >
+                            {seatClass.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 기내식 옵션 드롭다운 */}
+                  {showMealOptionDropdown && (
+                    <div className="relative">
+                      <div className="absolute z-10 w-full bg-white border-2 border-gray-300 rounded-lg shadow-lg mt-2 max-h-64 overflow-y-auto">
+                        {/* 일반식 (맨 위) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMealOption('일반식');
+                            setShowMealOptionDropdown(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors border-b border-gray-200 ${
+                            selectedMealOption === '일반식' ? 'bg-blue-100 font-semibold' : ''
+                          }`}
+                        >
+                          일반식
+                        </button>
+                        
+                        {/* 기타 기내식 옵션들 */}
+                        {MEAL_CATEGORIES.map((category) => (
+                          <div key={category.key}>
+                            <div className="px-4 py-2 bg-gray-100 text-xs font-semibold text-gray-600 border-b border-gray-200">
+                              {category.icon} {category.name}
+                            </div>
+                            {category.meals.map((meal) => (
+                              <button
+                                key={meal.key}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedMealOption(meal.label);
+                                  setShowMealOptionDropdown(false);
+                                }}
+                                className={`w-full text-left px-6 py-2 hover:bg-blue-50 transition-colors ${
+                                  selectedMealOption === meal.label ? 'bg-blue-100 font-semibold' : ''
+                                }`}
+                              >
+                                {meal.label}
+                              </button>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 사진 추가 */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      사진 추가
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {mealPhotos.map((photo, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={photo}
+                            alt={`기내식 사진 ${index + 1}`}
+                            className="w-20 h-20 object-cover rounded-lg border-2 border-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMealPhotos(prev => prev.filter((_, i) => i !== index))}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {mealPhotos.length < 5 && (
+                        <label className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  if (reader.result) {
+                                    setMealPhotos(prev => [...prev, reader.result as string]);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <svg
+                            className="w-8 h-8 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      최대 5장까지 추가할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
               </div>
+              
+              {/* 라운지 이용 편의성 */}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    이용한 라운지
+                  </label>
+                  <select
+                    value={selectedLounge}
+                    onChange={(e) => setSelectedLounge(e.target.value)}
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                  >
+                    <option value="">라운지를 선택하세요</option>
+                    {LOUNGES.map((lounge) => (
+                      <option key={lounge.id} value={lounge.id}>
+                        {lounge.airport} {lounge.terminal} - {lounge.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <StarRating
+                  value={reviewRatings.loungeService}
+                  onChange={(value) => setReviewRatings(prev => ({ ...prev, loungeService: value }))}
+                  label="라운지 이용 편의성"
+                />
+              </div>
+              
+              {/* 기내 인터넷 서비스 */}
+              <StarRating
+                value={reviewRatings.wifiService}
+                onChange={(value) => setReviewRatings(prev => ({ ...prev, wifiService: value }))}
+                label="기내 인터넷 서비스"
+              />
+              
+              {/* 좌석 편의성 */}
+              <StarRating
+                value={reviewRatings.seatComfort}
+                onChange={(value) => setReviewRatings(prev => ({ ...prev, seatComfort: value }))}
+                label="좌석 편의성"
+              />
             </div>
 
             <div>
@@ -3023,18 +4148,54 @@ const isOpen = !!expanded[f.code];
 
             <div className="flex gap-3 sm:gap-4 pt-4">
               <button
-                onClick={() => setStep('profile')}
+                onClick={() => {
+                  setSelectedBooking(null);
+                  setAirline('');
+                  setRoute('');
+                  setReviewRatings({
+                    punctuality: 5,
+                    crewService: 5,
+                    mealService: 5,
+                    loungeService: 5,
+                    wifiService: 5,
+                    seatComfort: 5,
+                  });
+                  setReviewMealOptions({});
+                  setSeatClassReview('');
+                  setSelectedLounge('');
+                  setReviewText('');
+                  setStep('profile');
+                  setActiveTab('review');
+                }}
                 className="flex-1 px-4 sm:px-6 py-3 rounded-xl border-2 border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-sm sm:text-base font-semibold transition-all"
               >
                 취소
               </button>
               <button
                 onClick={handleSubmitReview}
-                className="flex-1 px-4 sm:px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm sm:text-base font-bold hover:shadow-lg transition-all hover:scale-105"
+                className="flex-1 px-4 sm:px-6 py-3 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
               >
                 제출하기
               </button>
+              <button
+                onClick={handleShareToCommunity}
+                className="flex-1 px-4 sm:px-6 py-3 rounded-xl bg-green-600 text-white text-sm sm:text-base font-bold hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
+              >
+                커뮤니티에 공유하기
+              </button>
             </div>
+            
+            {/* 크레딧 알림 */}
+            {showCreditNotification && (
+              <div className="fixed top-20 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">+500 크레딧</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
     </div>
   </Page>
@@ -3047,30 +4208,76 @@ const isOpen = !!expanded[f.code];
   if (step === 'community') {
     const sampleReviews = [
       {
-        airline: "Korean Air KE081",
+        id: 'sample-1',
+        airline: "Korean Air",
         route: "ICN → JFK",
         rating: 5,
         text: "장거리 비행이었는데 좌석이 넓고 편안했어요. 기내식도 맛있고 승무원 서비스도 훌륭했습니다. 특히 정시 출발과 도착이 인상적이었습니다.",
         author: "익명 사용자",
-        date: "2024.12.15"
+        date: "2024.12.15",
+        ratings: {
+          punctuality: 5,
+          crewService: 5,
+          mealService: 5,
+          loungeService: 4,
+          wifiService: 4,
+          seatComfort: 5,
+        },
+        mealInfo: "비즈니스석에서 일반식을 식사했어요",
       },
       {
-        airline: "Asiana Airlines OZ221",
+        id: 'sample-2',
+        airline: "Asiana Airlines",
         route: "ICN → JFK",
         rating: 4,
         text: "직항편이라 편리했고, 수하물 허용량도 충분했습니다. 다만 좌석이 조금 좁았던 게 아쉬웠어요.",
         author: "익명 사용자",
-        date: "2024.12.10"
+        date: "2024.12.10",
+        ratings: {
+          punctuality: 4,
+          crewService: 4,
+          mealService: 4,
+          loungeService: 3,
+          wifiService: 4,
+          seatComfort: 3,
+        },
+        mealInfo: "일반석에서 일반식을 식사했어요",
       },
       {
-        airline: "Qatar Airways QR859",
+        id: 'sample-3',
+        airline: "Qatar Airways",
         route: "ICN → JFK (경유)",
         rating: 5,
         text: "경유편이었지만 도하 공항 라운지가 정말 훌륭했어요. Qsuite 비즈니스 클래스는 최고였습니다. 서비스 품질이 정말 우수했습니다.",
         author: "익명 사용자",
-        date: "2024.12.08"
+        date: "2024.12.08",
+        ratings: {
+          punctuality: 5,
+          crewService: 5,
+          mealService: 5,
+          loungeService: 5,
+          wifiService: 5,
+          seatComfort: 5,
+        },
+        mealInfo: "비즈니스석에서 할랄식을 식사했어요",
       }
     ];
+    
+    // 공유된 리뷰와 샘플 리뷰 합치기
+    const allReviews = [...communityReviews, ...sampleReviews];
+    
+    // 항공사 목록 추출 (중복 제거)
+    const airlines = Array.from(new Set(allReviews.map(review => review.airline))).sort();
+    
+    // 필터링된 리뷰
+    const filteredReviews = allReviews.filter((review: any) => {
+      const matchesAirline = !communityFilterAirline || review.airline === communityFilterAirline;
+      const matchesKeyword = !communitySearchKeyword || 
+        review.text.toLowerCase().includes(communitySearchKeyword.toLowerCase()) ||
+        review.airline.toLowerCase().includes(communitySearchKeyword.toLowerCase()) ||
+        review.route.toLowerCase().includes(communitySearchKeyword.toLowerCase());
+      return matchesAirline && matchesKeyword;
+    });
 
     return (
       <Page
@@ -3085,10 +4292,73 @@ const isOpen = !!expanded[f.code];
                 다른 여행자들이 공유한 항공편 리뷰를 확인하고, 여러분의 경험도 공유해보세요.
               </p>
               
-              {/* 샘플 리뷰 목록 */}
+              {/* 필터 및 검색 */}
+              <div className="mb-6 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* 항공사 선택 */}
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      항공사 선택
+                    </label>
+                    <select
+                      value={communityFilterAirline}
+                      onChange={(e) => setCommunityFilterAirline(e.target.value)}
+                      className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                    >
+                      <option value="">전체 항공사</option>
+                      {airlines.map((airline) => (
+                        <option key={airline} value={airline}>
+                          {airline}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* 키워드 검색 */}
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      키워드 검색
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={communitySearchKeyword}
+                        onChange={(e) => setCommunitySearchKeyword(e.target.value)}
+                        placeholder="항공사, 노선, 내용 검색..."
+                        className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 pr-10 text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                      />
+                      <svg
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 검색 결과 개수 */}
+                <div className="text-sm text-gray-600">
+                  총 {filteredReviews.length}개의 리뷰가 있습니다.
+                </div>
+              </div>
+              
+              {/* 리뷰 목록 */}
               <div className="space-y-4">
-                {sampleReviews.map((review, index) => (
-                  <div key={index} className="border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md transition-all">
+                {filteredReviews.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-gray-600">검색 결과가 없습니다.</p>
+                  </div>
+                ) : (
+                  filteredReviews.map((review: any, index: number) => (
+                    <div key={review.id || index} className="border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md transition-all">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -3101,6 +4371,33 @@ const isOpen = !!expanded[f.code];
                           ))}
                           <span className="text-xs text-gray-500 ml-1">{review.rating}.0</span>
                         </div>
+                        {review.ratings && (
+                          <div className="text-xs text-gray-600 mb-2 space-y-1">
+                            <div>정시성: {review.ratings.punctuality}/5 | 승무원: {review.ratings.crewService}/5 | 기내식: {review.ratings.mealService}/5</div>
+                            <div>라운지: {review.ratings.loungeService}/5 | 인터넷: {review.ratings.wifiService}/5 | 좌석: {review.ratings.seatComfort}/5</div>
+                          </div>
+                        )}
+                        {review.mealInfo && (
+                          <div className="text-xs text-blue-600 mb-2">🍽️ {review.mealInfo}</div>
+                        )}
+                        {review.mealPhotos && review.mealPhotos.length > 0 && (
+                          <div className="flex gap-2 mb-2">
+                            {review.mealPhotos.slice(0, 3).map((photo: string, photoIndex: number) => (
+                              <img key={photoIndex} src={photo} alt={`기내식 ${photoIndex + 1}`} className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                            ))}
+                          </div>
+                        )}
+                        {review.incident && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-2 mb-2">
+                            <div className="text-xs font-semibold text-red-700 mb-1">⚠️ 사고 발생: {review.incident.type}</div>
+                            {review.incident.compensation && (
+                              <div className="text-xs text-red-600">보상: {review.incident.compensation}</div>
+                            )}
+                            {review.incident.response && (
+                              <div className="text-xs text-red-600">항공사 대처: {review.incident.response}</div>
+                            )}
+                          </div>
+                        )}
                         <p className="text-sm text-gray-700 leading-relaxed">
                           {review.text}
                         </p>
@@ -3110,14 +4407,15 @@ const isOpen = !!expanded[f.code];
                       <span className="text-xs text-gray-500">작성자: {review.author}</span>
                       <span className="text-xs text-gray-500">{review.date}</span>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <button
                   onClick={() => setStep('review')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm sm:text-base font-bold hover:shadow-2xl transition-all hover:scale-105"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-5 h-5 sm:w-6 sm:h-6"
