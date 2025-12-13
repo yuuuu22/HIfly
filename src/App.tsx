@@ -16,6 +16,15 @@ const AIRPORTS = {
   ],
   international: [
     { code: "US-NYC", name: "뉴욕", airport: "JFK/EWR/LGA 뉴욕공항" },
+    { code: "US-LAX", name: "로스앤젤레스", airport: "LAX 로스앤젤레스공항" },
+    { code: "US-SFO", name: "샌프란시스코", airport: "SFO 샌프란시스코공항" },
+    { code: "US-CHI", name: "시카고", airport: "ORD 시카고 오헤어공항" },
+    { code: "US-SEA", name: "시애틀", airport: "SEA 시애틀 타코마공항" },
+    { code: "US-BOS", name: "보스턴", airport: "BOS 보스턴 로건공항" },
+    { code: "US-MIA", name: "마이애미", airport: "MIA 마이애미공항" },
+    { code: "US-WAS", name: "워싱턴 D.C.", airport: "DCA/IAD 워싱턴공항" },
+    { code: "US-LAS", name: "라스베이거스", airport: "LAS 라스베이거스공항" },
+    { code: "US-HNL", name: "호놀룰루", airport: "HNL 호놀룰루공항" },
     { code: "JP-TYO", name: "도쿄", airport: "NRT 나리타공항" },
     { code: "JP-OSA", name: "오사카", airport: "KIX 간사이공항" },
   ],
@@ -301,6 +310,24 @@ const getPresetSummary = (): { high: string[]; low: string[] } => {
   } catch {
     return { high: [], low: [] };
   }
+};
+
+// 현재 vars 상태에서 높음/낮음 우선순위 반환
+const getCurrentVarsSummary = (vars: typeof DEFAULT_VARS): { high: string[]; low: string[] } => {
+  const high: string[] = [];
+  const low: string[] = [];
+  
+  (Object.keys(vars) as Array<keyof typeof DEFAULT_VARS>).forEach((key) => {
+    const value = vars[key];
+    const label = VAR_LABELS[key];
+    if (value === 2) {
+      high.push(label);
+    } else if (value === 0) {
+      low.push(label);
+    }
+  });
+  
+  return { high, low };
 };
 
 // 인천(ICN) - 뉴욕(JFK) 노선 실제 항공편 데이터
@@ -1113,6 +1140,246 @@ function savePreferences(vars: typeof DEFAULT_VARS, baggageKg: number, dietary: 
   }
 }
 
+// 중요도 시각화 표 컴포넌트
+const ImportanceGraph = ({ vars, situationKey, dietary, baggageKg, showHelperText = true }: { vars: typeof DEFAULT_VARS; situationKey: string | null; dietary?: Record<string, boolean>; baggageKg?: number; showHelperText?: boolean }) => {
+  // 상황에 맞는 제목 생성
+  const getSituationTitle = () => {
+    if (!situationKey) return "현재 설정된 중요도";
+    if (situationKey === "preset") {
+      const preset = SITUATIONS.find(s => s.key === "preset");
+      // preset의 label에 이미 아이콘이 포함되어 있음
+      return `현재 설정된 '${preset?.label || "⭐ 내 선호 불러오기"}' 중요도`;
+    }
+    if (situationKey === "custom") return "현재 설정된 '직접 맞춤 설정하기' 중요도";
+    const situation = SITUATIONS.find(s => s.key === situationKey);
+    if (situation) return `현재 설정된 '${situation.icon}${situation.label}' 중요도`;
+    return "현재 설정된 중요도";
+  };
+  // 모든 요소를 순서대로 배열 (이모티콘 포함)
+  const allElements = [
+    { key: "price_price" as keyof typeof DEFAULT_VARS, label: "가격", icon: "💰" },
+    { key: "basic_safety" as keyof typeof DEFAULT_VARS, label: "안전성", icon: "🛡️" },
+    { key: "basic_punctuality" as keyof typeof DEFAULT_VARS, label: "정시성", icon: "⏰" },
+    { key: "service_cabin" as keyof typeof DEFAULT_VARS, label: "승무원", icon: "👨‍✈️" },
+    { key: "service_meal" as keyof typeof DEFAULT_VARS, label: "기내식", icon: "🍽️" },
+    { key: "service_baggage" as keyof typeof DEFAULT_VARS, label: "무료 수하물", icon: "🧳" },
+    { key: "service_lounge" as keyof typeof DEFAULT_VARS, label: "라운지", icon: "🏛️" },
+    { key: "service_wifi" as keyof typeof DEFAULT_VARS, label: "무료 인터넷", icon: "📶" },
+    { key: "service_seat" as keyof typeof DEFAULT_VARS, label: "좌석 편의성", icon: "💺" },
+    { key: "env_env" as keyof typeof DEFAULT_VARS, label: "환경", icon: "🌱" },
+  ];
+
+  const getLevelStyle = (level: Level) => {
+    if (level === 2) {
+      return {
+        bgColor: "bg-blue-600",
+        arrow: "↑",
+      };
+    } else if (level === 1) {
+      return {
+        bgColor: "bg-blue-400",
+        arrow: "-",
+      };
+    } else {
+      return {
+        bgColor: "bg-blue-100",
+        arrow: "↓",
+      };
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+      <div className="mb-4 sm:mb-5">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          {getSituationTitle()}
+        </h2>
+        {showHelperText && (
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            오른쪽 '중요도 변경' 버튼을 클릭하여 추가 변경 가능합니다.
+          </p>
+        )}
+      </div>
+      
+      {/* 모바일: 카드 형식, 데스크톱: 표 형식 */}
+      {/* 모바일 카드 형식 */}
+      <div className="block md:hidden space-y-3">
+        {allElements.map((elem) => {
+          const level = vars[elem.key] as Level;
+          const style = getLevelStyle(level);
+          let extraInfo = null;
+          
+          if (elem.key === "service_meal" && dietary) {
+            const selectedMeals: string[] = [];
+            MEAL_CATEGORIES.forEach(category => {
+              category.meals.forEach(meal => {
+                if (dietary[meal.key]) {
+                  selectedMeals.push(meal.label);
+                }
+              });
+            });
+            if (selectedMeals.length > 0) {
+              extraInfo = (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {selectedMeals.slice(0, 3).map((meal, idx) => (
+                    <span key={idx} className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium">
+                      {meal}
+                    </span>
+                  ))}
+                  {selectedMeals.length > 3 && (
+                    <span className="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-medium">
+                      +{selectedMeals.length - 3}개
+                    </span>
+                  )}
+                </div>
+              );
+            }
+          } else if (elem.key === "service_baggage" && baggageKg && baggageKg > 0) {
+            extraInfo = (
+              <div className="mt-2">
+                <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-semibold">
+                  {baggageKg}kg 이상
+                </span>
+              </div>
+            );
+          }
+          
+          return (
+            <div
+              key={elem.key}
+              className={`flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 ${style.bgColor} border-gray-200`}
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <span className="text-2xl">{elem.icon}</span>
+                <div className="flex-1">
+                  <div className="font-semibold text-sm sm:text-base text-gray-900">
+                    {elem.label}
+                  </div>
+                  {extraInfo}
+                </div>
+              </div>
+              <div className={`px-3 py-2 rounded-lg ${style.bgColor} min-w-[44px] flex items-center justify-center`}>
+                <span className="text-lg font-bold text-white">{style.arrow}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* 데스크톱 표 형식 */}
+      <div className="hidden md:block overflow-x-auto">
+        <div className="min-w-full">
+          <table className="w-full border-collapse table-fixed">
+            <thead>
+              <tr>
+                {allElements.map((elem) => (
+                  <th
+                    key={elem.key}
+                    className="border border-gray-300 bg-gray-50 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-gray-700 text-center w-[10%]"
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-base sm:text-lg">{elem.icon}</span>
+                      <span>{elem.label}</span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {allElements.map((elem) => {
+                  const level = vars[elem.key] as Level;
+                  const style = getLevelStyle(level);
+                  return (
+                    <td
+                      key={elem.key}
+                      className={`border border-gray-300 ${style.bgColor} px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-xs sm:text-sm transition-colors duration-300 w-[10%]`}
+                    >
+                      <span className="text-black">{style.arrow}</span>
+                    </td>
+                  );
+                })}
+              </tr>
+              {/* 선택한 기내식 옵션 및 무료 수하물 허용량 표시 */}
+              {(dietary || (baggageKg && baggageKg > 0)) && (
+                <tr>
+                  {allElements.map((elem) => {
+                    if (elem.key === "service_meal" && dietary) {
+                      // 선택한 기내식 옵션
+                      const selectedMeals: string[] = [];
+                      MEAL_CATEGORIES.forEach(category => {
+                        category.meals.forEach(meal => {
+                          if (dietary[meal.key]) {
+                            selectedMeals.push(meal.label);
+                          }
+                        });
+                      });
+                      
+                      return (
+                        <td
+                          key={elem.key}
+                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
+                        >
+                          {selectedMeals.length > 0 ? (
+                            <div className="flex flex-col gap-1 items-center">
+                              {selectedMeals.slice(0, 2).map((meal, idx) => (
+                                <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium whitespace-nowrap">
+                                  {meal}
+                                </span>
+                              ))}
+                              {selectedMeals.length > 2 && (
+                                <span className="text-gray-500 text-xs">+{selectedMeals.length - 2}개</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
+                      );
+                    } else if (elem.key === "service_baggage" && baggageKg && baggageKg > 0) {
+                      // 무료 수하물 허용량
+                      return (
+                        <td
+                          key={elem.key}
+                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
+                        >
+                          <span className="font-semibold text-blue-600">{baggageKg}kg 이상</span>
+                        </td>
+                      );
+                    } else {
+                      return (
+                        <td
+                          key={elem.key}
+                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
+                        >
+                          <span className="text-gray-400">-</span>
+                        </td>
+                      );
+                    }
+                  })}
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function loadPreferences(): { vars: typeof DEFAULT_VARS; baggageKg: number; dietary: Record<string, boolean> } | null {
   try {
     const data = localStorage.getItem(PREFERENCES_KEY);
@@ -1529,7 +1796,7 @@ export default function App() {
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         <button
           onClick={goBack}
-          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all text-xs sm:text-sm font-medium text-gray-700 hover:shadow-md"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 sm:py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all text-xs sm:text-sm font-medium text-gray-700 hover:shadow-md min-h-[44px] sm:min-h-0"
         >
           <svg
             className="w-4 h-4 sm:w-5 sm:h-5"
@@ -1565,7 +1832,7 @@ export default function App() {
           <div className="relative group">
             <button
               onClick={() => setStep('profile')}
-              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              className="flex items-center justify-center w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0"
               aria-label="개인 페이지"
             >
               <svg
@@ -1589,7 +1856,7 @@ export default function App() {
           <div className="relative group">
             <button
               onClick={() => setStep('community')}
-              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              className="flex items-center justify-center w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0"
               aria-label="커뮤니티"
             >
               <svg
@@ -1932,26 +2199,46 @@ export default function App() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <h3 className="font-semibold text-gray-900">• 주요 도시</h3>
+                      <h3 className="font-semibold text-gray-900">• 미국 주요 도시</h3>
                     </div>
-                  </div>
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-3">해외</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {AIRPORTS.international.map((airport) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {AIRPORTS.international.filter(airport => airport.code.startsWith('US-')).map((airport) => (
                         <button
                           key={airport.code}
                           onClick={() => {
                             setSelectedDest(airport.code);
                             setShowDestModal(false);
                           }}
-                          className={`border rounded-lg p-3 text-center transition-colors ${
+                          className={`border rounded-lg p-3 text-center transition-colors min-h-[60px] sm:min-h-0 ${
                             selectedDest === airport.code
                               ? "border-blue-500 bg-blue-50"
                               : "border-gray-200 hover:bg-gray-50"
                           }`}
                         >
                           <div className="text-sm font-medium text-gray-900">{airport.name}</div>
+                          <div className="text-xs text-gray-500 mt-1">{airport.airport}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3">기타 해외</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {AIRPORTS.international.filter(airport => !airport.code.startsWith('US-')).map((airport) => (
+                        <button
+                          key={airport.code}
+                          onClick={() => {
+                            setSelectedDest(airport.code);
+                            setShowDestModal(false);
+                          }}
+                          className={`border rounded-lg p-3 text-center transition-colors min-h-[60px] sm:min-h-0 ${
+                            selectedDest === airport.code
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-200 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="text-sm font-medium text-gray-900">{airport.name}</div>
+                          <div className="text-xs text-gray-500 mt-1">{airport.airport}</div>
                         </button>
                       ))}
                     </div>
@@ -1989,7 +2276,7 @@ export default function App() {
                   <div className="mt-4 flex justify-end">
                     <button
                       onClick={() => setShowDateModal(false)}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                      className="px-6 py-3 sm:py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors min-h-[44px] sm:min-h-0"
                     >
                       확인
                     </button>
@@ -2043,7 +2330,7 @@ export default function App() {
                   setSelectedSituationKey("custom");
                   setStep(3);
                 }}
-                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-2.5 rounded-xl bg-blue-600 text-white text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg whitespace-nowrap min-h-[44px] sm:min-h-0"
               >
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5"
@@ -2093,7 +2380,7 @@ export default function App() {
                   setStep(4);
                 }
               }}
-              className={`group relative rounded-2xl border-2 p-4 sm:p-6 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+              className={`group relative rounded-2xl border-2 p-5 sm:p-6 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[120px] sm:min-h-0 ${
                 i === 0
                   ? "border-blue-300 bg-blue-50"
                   : "border-gray-200 bg-white hover:border-blue-300"
@@ -2184,7 +2471,7 @@ export default function App() {
               [vkey]: Number(e.target.value) as Level,
             })
           }
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+          className="w-full h-3 sm:h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb touch-manipulation"
           style={{
             background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
               ((vars as any)[vkey] / 2) * 100
@@ -2290,7 +2577,7 @@ export default function App() {
               step={1}
               value={baggageKg}
               onChange={(e) => setBaggageKg(Number(e.target.value))}
-              className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-3 sm:h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer touch-manipulation"
               style={{
                 background: `linear-gradient(to right, #10b981 0%, #10b981 ${
                   (baggageKg / 40) * 100
@@ -2312,13 +2599,7 @@ export default function App() {
         title="③ 직접 맞춤 설정하기"
         subtitle="당신이 생각하는 중요도로 각 요소를 직접 설정하세요."
       >
-        <div className="mb-6 sm:mb-8 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5">
-          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-            일반적인 중요도를 반영하여 기본 설정되어 있습니다.
-            <br className="hidden sm:block" />
-            <span className="sm:ml-1">카테고리 일괄 변경 가능합니다.</span>
-          </p>
-        </div>
+        <ImportanceGraph vars={vars} situationKey={selectedSituationKey} dietary={dietary} baggageKg={baggageKg} showHelperText={false} />
         <div className="space-y-6 sm:space-y-8">
           {CATEGORIES.map((cat) => (
             <div
@@ -2341,13 +2622,13 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => setBulk(cat.key, 1)}
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
+                    className="px-3 sm:px-4 py-2.5 sm:py-1.5 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-0"
                   >
                     중간
                   </button>
                   <button
                     onClick={() => setBulk(cat.key, 2)}
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
+                    className="px-3 sm:px-4 py-2.5 sm:py-1.5 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-0"
                   >
                     높음
                   </button>
@@ -2401,174 +2682,6 @@ export default function App() {
   // ④ 추천 결과
   // -----------------------------
   if (step === 4) {
-  // 중요도 시각화 표 컴포넌트
-  const ImportanceGraph = ({ vars, situationKey, dietary, baggageKg }: { vars: typeof DEFAULT_VARS; situationKey: string | null; dietary?: Record<string, boolean>; baggageKg?: number }) => {
-    // 상황에 맞는 제목 생성
-    const getSituationTitle = () => {
-      if (!situationKey) return "현재 설정된 중요도";
-      if (situationKey === "preset") {
-        const preset = SITUATIONS.find(s => s.key === "preset");
-        // preset의 label에 이미 아이콘이 포함되어 있음
-        return `현재 설정된 '${preset?.label || "⭐ 내 선호 불러오기"}' 중요도`;
-      }
-      if (situationKey === "custom") return "현재 설정된 '직접 맞춤 설정하기' 중요도";
-      const situation = SITUATIONS.find(s => s.key === situationKey);
-      if (situation) return `현재 설정된 '${situation.icon}${situation.label}' 중요도`;
-      return "현재 설정된 중요도";
-    };
-    // 모든 요소를 순서대로 배열 (이모티콘 포함)
-    const allElements = [
-      { key: "price_price" as keyof typeof DEFAULT_VARS, label: "가격", icon: "💰" },
-      { key: "basic_safety" as keyof typeof DEFAULT_VARS, label: "안전성", icon: "🛡️" },
-      { key: "basic_punctuality" as keyof typeof DEFAULT_VARS, label: "정시성", icon: "⏰" },
-      { key: "service_cabin" as keyof typeof DEFAULT_VARS, label: "승무원", icon: "👨‍✈️" },
-      { key: "service_meal" as keyof typeof DEFAULT_VARS, label: "기내식", icon: "🍽️" },
-      { key: "service_baggage" as keyof typeof DEFAULT_VARS, label: "무료 수하물", icon: "🧳" },
-      { key: "service_lounge" as keyof typeof DEFAULT_VARS, label: "라운지", icon: "🏛️" },
-      { key: "service_wifi" as keyof typeof DEFAULT_VARS, label: "무료 인터넷", icon: "📶" },
-      { key: "service_seat" as keyof typeof DEFAULT_VARS, label: "좌석 편의성", icon: "💺" },
-      { key: "env_env" as keyof typeof DEFAULT_VARS, label: "환경", icon: "🌱" },
-    ];
-
-    const getLevelStyle = (level: Level) => {
-      if (level === 2) {
-        return {
-          bgColor: "bg-blue-600",
-          arrow: "↑",
-        };
-      } else if (level === 1) {
-        return {
-          bgColor: "bg-blue-400",
-          arrow: "-",
-        };
-      } else {
-        return {
-          bgColor: "bg-blue-100",
-          arrow: "↓",
-        };
-      }
-    };
-
-    return (
-      <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 overflow-x-auto">
-        <div className="mb-4 sm:mb-5">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
-            <svg
-              className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-            {getSituationTitle()}
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            오른쪽 '중요도 변경' 버튼을 클릭하여 추가 변경 가능합니다.
-          </p>
-        </div>
-        <div className="min-w-full">
-          <table className="w-full border-collapse table-fixed">
-            <thead>
-              <tr>
-                {allElements.map((elem) => (
-                  <th
-                    key={elem.key}
-                    className="border border-gray-300 bg-gray-50 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-gray-700 text-center w-[10%]"
-                  >
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-base sm:text-lg">{elem.icon}</span>
-                      <span>{elem.label}</span>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {allElements.map((elem) => {
-                  const level = vars[elem.key] as Level;
-                  const style = getLevelStyle(level);
-                  return (
-                    <td
-                      key={elem.key}
-                      className={`border border-gray-300 ${style.bgColor} px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-xs sm:text-sm transition-colors duration-300 w-[10%]`}
-                    >
-                      <span className="text-black">{style.arrow}</span>
-                    </td>
-                  );
-                })}
-              </tr>
-              {/* 선택한 기내식 옵션 및 무료 수하물 허용량 표시 */}
-              {(dietary || (baggageKg && baggageKg > 0)) && (
-                <tr>
-                  {allElements.map((elem) => {
-                    if (elem.key === "service_meal" && dietary) {
-                      // 선택한 기내식 옵션
-                      const selectedMeals: string[] = [];
-                      MEAL_CATEGORIES.forEach(category => {
-                        category.meals.forEach(meal => {
-                          if (dietary[meal.key]) {
-                            selectedMeals.push(meal.label);
-                          }
-                        });
-                      });
-                      
-                      return (
-                        <td
-                          key={elem.key}
-                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
-                        >
-                          {selectedMeals.length > 0 ? (
-                            <div className="flex flex-col gap-1 items-center">
-                              {selectedMeals.slice(0, 2).map((meal, idx) => (
-                                <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium whitespace-nowrap">
-                                  {meal}
-                                </span>
-                              ))}
-                              {selectedMeals.length > 2 && (
-                                <span className="text-gray-500 text-xs">+{selectedMeals.length - 2}개</span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 text-xs">-</span>
-                          )}
-                        </td>
-                      );
-                    } else if (elem.key === "service_baggage" && baggageKg && baggageKg > 0) {
-                      // 무료 수하물 허용량
-                      return (
-                        <td
-                          key={elem.key}
-                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
-                        >
-                          <span className="font-semibold text-blue-600">{baggageKg}kg 이상</span>
-                        </td>
-                      );
-                    } else {
-                      return (
-                        <td
-                          key={elem.key}
-                          className="border border-gray-300 bg-white px-2 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm w-[10%]"
-                        >
-                          <span className="text-gray-400">-</span>
-                        </td>
-                      );
-                    }
-                  })}
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
 
   const setBulk = (catKey: string, level: Level) => {
     const cat = CATEGORIES.find((c) => c.key === catKey)!;
@@ -2611,7 +2724,7 @@ export default function App() {
             [vkey]: Number(e.target.value) as Level,
           })
         }
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+        className="w-full h-3 sm:h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb touch-manipulation"
         style={{
           background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
             ((vars as any)[vkey] / 2) * 100
@@ -2743,7 +2856,7 @@ return (
       <div className="flex-1 flex flex-col lg:flex-row relative min-h-0">
         {/* 메인 콘텐츠 영역 - 작은 화면에서 위에 */}
         <div className={`flex-1 transition-all duration-300 min-w-0 order-1 lg:order-1 ${sidebarOpen ? 'lg:pr-0' : ''}`}>
-          <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
+          <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 lg:px-10 py-8 sm:py-12">
             <div className="mb-7 sm:mb-10 flex items-center justify-between">
               <div>
                 <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 text-blue-700">
@@ -2863,19 +2976,19 @@ const rankColors = getRankColor(idx);
      return (
           <div
             key={f.code}
-            className={`group relative bg-white rounded-2xl border-2 ${rankColors.border} p-7 ${rankColors.borderHover} hover:shadow-2xl transition-all duration-300`}
+            className={`group relative bg-white rounded-2xl border-2 ${rankColors.border} p-4 sm:p-7 ${rankColors.borderHover} hover:shadow-2xl transition-all duration-300`}
           >
-            {/* 순위 배지 */}
-            <div className={`absolute -top-6 -left-4 px-4 py-3 rounded-full ${rankColors.badgeBg} flex items-center gap-3 shadow-lg border-2 border-white z-10`}>
-              <span className="text-3xl">{rankEmoji(idx)}</span>
-              <span className="text-xl font-bold text-white">{idx + 1}위</span>
+            {/* 순위 배지 - 모바일: 내부 상단, 데스크톱: 외부 */}
+            <div className={`sm:absolute sm:-top-6 sm:-left-4 px-4 py-2.5 sm:py-3 rounded-full ${rankColors.badgeBg} flex items-center gap-2 sm:gap-3 shadow-lg border-2 border-white z-10 mb-4 sm:mb-0`}>
+              <span className="text-2xl sm:text-3xl">{rankEmoji(idx)}</span>
+              <span className="text-lg sm:text-xl font-bold text-white">{idx + 1}위</span>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mt-8">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-5 sm:mt-8">
               <div className="flex-1">
-                <div className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                   {f.airline}{" "}
-                  <span className="text-gray-500 text-lg">
+                  <span className="text-gray-500 text-base sm:text-lg">
                     {f.code}
                   </span>
                 </div>
@@ -2883,7 +2996,7 @@ const rankColors = getRankColor(idx);
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-gray-700 border border-gray-200"
+                      className="px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-gray-700 border border-gray-200"
                     >
                       {t}
                     </span>
@@ -2892,8 +3005,8 @@ const rankColors = getRankColor(idx);
               </div>
 
               {/* 점수 표시 */}
-              <div className={`shrink-0 text-center ${rankColors.scoreBg} rounded-2xl p-6 text-white shadow-lg`}>
-                <div className="text-5xl font-black leading-none mb-1">
+              <div className={`shrink-0 text-center ${rankColors.scoreBg} rounded-2xl p-4 sm:p-6 text-white shadow-lg w-full sm:w-auto`}>
+                <div className="text-4xl sm:text-5xl font-black leading-none mb-1">
                   {score100}
                 </div>
                 <div className="text-xs font-medium opacity-90">
@@ -2903,13 +3016,13 @@ const rankColors = getRankColor(idx);
             </div>
 
             {/* 항공편 정보 */}
-            <div className="mt-5 p-5 bg-blue-50 rounded-xl border border-gray-200">
+            <div className="mt-4 sm:mt-5 p-4 sm:p-5 bg-blue-50 rounded-xl border border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-sm">
                 <div className="font-semibold text-gray-900">
                   <div className="text-xs text-gray-500 mb-1">
                     출발 → 도착
                   </div>
-                  <div className="text-base">
+                  <div className="text-base sm:text-base">
                     {f.depart} → {f.arrive}
                   </div>
                 </div>
@@ -2919,7 +3032,7 @@ const rankColors = getRankColor(idx);
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                         f.nonstop
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
@@ -2927,21 +3040,21 @@ const rankColors = getRankColor(idx);
                     >
                       {f.nonstop ? "직항" : "경유"}
                     </span>
-                    <span>{durationHuman(f.duration)}</span>
+                    <span className="text-base sm:text-base">{durationHuman(f.duration)}</span>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left md:text-right">
                   <div className="text-xs text-gray-500 mb-1">
                     예상 요금
                   </div>
-                  <div className="text-lg font-bold text-blue-600">
+                  <div className="text-xl sm:text-lg font-bold text-blue-600 mb-3 sm:mb-0">
                     ₩{KRW(f.price)}~
                   </div>
                   <button
                     onClick={() =>
                       alert("예약 페이지는 준비 중입니다")
                     }
-                    className="mt-2 w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+                    className="mt-2 w-full sm:w-auto md:w-full px-4 py-3 sm:py-2 rounded-lg bg-blue-600 text-white text-sm sm:text-base font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg min-h-[44px]"
                   >
                     예약하기
                   </button>
@@ -2950,17 +3063,17 @@ const rankColors = getRankColor(idx);
             </div>
 
             {/* 추천 이유 */}
-            <div className="mt-5 p-5 bg-blue-50 rounded-xl border border-blue-200">
-              <div className="text-sm font-semibold text-blue-900 mb-2">
+            <div className="mt-4 sm:mt-5 p-4 sm:p-5 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="text-base sm:text-sm font-semibold text-blue-900 mb-2">
                 추천 이유
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-base sm:text-sm text-gray-700 leading-relaxed">
                 {reason}
               </p>
             </div>
 
             {/* 세부 점수 아코디언 */}
-            <div className="mt-5">
+            <div className="mt-4 sm:mt-5">
               <button
                 onClick={() =>
                   setExpanded({
@@ -2968,7 +3081,7 @@ const rankColors = getRankColor(idx);
                     [f.code]: !isOpen,
                   })
                 }
-                className="w-full flex items-center justify-between px-5 py-3 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition-all text-left font-semibold"
+                className="w-full flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition-all text-left font-semibold text-sm sm:text-base min-h-[44px]"
                 aria-expanded={isOpen}
               >
                 <span className="flex items-center gap-2">
@@ -3116,18 +3229,18 @@ const rankColors = getRankColor(idx);
           } ${sidebarOpen ? 'w-full sm:w-96 lg:w-80 xl:w-96' : 'w-0 lg:w-0'}`}
           style={sidebarOpen && step === 4 ? { scrollBehavior: 'auto' } : undefined}
         >
-          <div className="p-3 sm:p-4 pt-8 sm:pt-8 lg:pt-4 h-full flex flex-col min-h-0">
+          <div className="p-3 sm:p-4 pt-4 sm:pt-8 lg:pt-4 h-full flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-4 sm:mb-5 flex-shrink-0">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 중요도 변경
               </h2>
       <button
                 onClick={() => setSidebarOpen(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
                 aria-label="사이드탭 닫기"
       >
         <svg
-                  className="w-5 h-5 text-gray-600"
+                  className="w-6 h-6 sm:w-5 sm:h-5 text-gray-600"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -3136,11 +3249,23 @@ const rankColors = getRankColor(idx);
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-                    d="M9 5l7 7-7 7"
+            d="M6 18L18 6M6 6l12 12"
           />
         </svg>
       </button>
     </div>
+            {/* 모바일에서만 표시되는 추가 닫기 버튼 */}
+            <div className="lg:hidden mb-4">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                닫기
+              </button>
+            </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-4">
               중요도 변경 시 실시간으로 반영됩니다
             </p>
@@ -3250,7 +3375,7 @@ const rankColors = getRankColor(idx);
               [vkey]: Number(e.target.value) as Level,
             })
           }
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+          className="w-full h-3 sm:h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb touch-manipulation"
           style={{
             background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
               ((profileVars as any)[vkey] / 2) * 100
@@ -3406,6 +3531,7 @@ const rankColors = getRankColor(idx);
           {/* 내 선호 입력하기 */}
           {activeTab === 'preferences' && (
             <div className="space-y-6 sm:space-y-8">
+              <ImportanceGraph vars={profileVars} situationKey="preset" dietary={profileDietary} baggageKg={profileBaggageKg} showHelperText={false} />
               {CATEGORIES.map((cat) => (
                 <div
                   key={cat.key}
@@ -3427,13 +3553,13 @@ const rankColors = getRankColor(idx);
                       </button>
                       <button
                         onClick={() => setBulk(cat.key, 1)}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
+                        className="px-3 sm:px-4 py-2.5 sm:py-1.5 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-0"
                       >
                         중간
                       </button>
                       <button
                         onClick={() => setBulk(cat.key, 2)}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium"
+                        className="px-3 sm:px-4 py-2.5 sm:py-1.5 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-0"
                       >
                         높음
                       </button>
